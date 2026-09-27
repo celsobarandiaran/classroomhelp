@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1b6e4a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Classroom Help</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icono-192.png">
+<link rel="apple-touch-icon" href="icono-192.png">
+<style>
+:root{
+  --verde:#1b6e4a; --verde-osc:#12513a; --verde-claro:#e3f1ea; --sel:#bfe0cf;
+  --fondo:#f2f5f3; --bloque:#f3f5f4; --blanco:#fff; --borde:#dde6e1; --sombra:rgba(20,40,30,.10);
+  --texto:#1f2a26; --gris:#6b7a74; --gris-claro:#9aa6a1;
+  --rojo:#b3261e; --rojo-suave:#f8d7d4; --naranja:#b35c00; --naranja-suave:#fbe3c8;
+  --amarillo:#f6e7b3; --amarillo-txt:#7a5a00; --azul:#2f56a0; --azul-suave:#e5edfa;
+  --alto-cab:64px; --alto-nav:64px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--fondo);color:var(--texto);
+  font-family:"Segoe UI Variable Text","Segoe UI",Roboto,system-ui,-apple-system,sans-serif;font-size:16px}
+body{display:flex;flex-direction:column;min-height:100dvh}
+button{font:inherit;cursor:pointer}
+input,select,textarea{font:inherit}
+a{color:#1a5fb4}
+.oculto{display:none!important}
+
+/* Cabecera */
+header{background:var(--verde);color:#fff;min-height:var(--alto-cab);display:flex;align-items:center;gap:12px;
+  padding:8px 16px;padding-top:calc(8px + env(safe-area-inset-top));position:sticky;top:0;z-index:20;
+  box-shadow:0 2px 8px rgba(0,0,0,.18)}
+header img{width:40px;height:40px;border-radius:9px}
+header .titulo{font-weight:600;font-size:19px;line-height:1.1}
+header .sub{font-size:13px;color:#cfe8dc}
+header .sub b{color:#fff;font-weight:600;margin-left:6px}
+header .chips{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.chip{padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap}
+.chip.ok{background:var(--verde-claro);color:var(--verde-osc)}
+.chip.info{background:#2f7f5a;color:#eaf5ee}
+.chip.aviso{background:var(--amarillo);color:var(--amarillo-txt)}
+.chip.error{background:var(--rojo-suave);color:var(--rojo)}
+.chip.trabajando{background:#fff;color:var(--verde-osc)}
+header .btn-cab{background:#fff;color:var(--verde);border:0;border-radius:8px;padding:8px 12px;font-weight:600}
+header .btn-cab.icono{padding:8px 10px;font-size:18px;line-height:1}
+
+/* Contenido */
+main{flex:1;display:flex;gap:14px;padding:12px 14px;padding-bottom:calc(var(--alto-nav) + 12px + env(safe-area-inset-bottom));overflow:hidden}
+.columna{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px;overflow:auto}
+.panel{display:none;flex-direction:column;gap:12px;min-height:0}
+.panel.activo{display:flex}
+.tarjeta{background:var(--blanco);border:1px solid var(--borde);border-radius:14px;box-shadow:0 2px 6px var(--sombra);padding:14px}
+.tarjeta.suave{background:var(--bloque)}
+.tarjeta h2{margin:0 0 8px;font-size:17px;font-weight:600}
+.info{color:var(--gris);font-size:13px}
+.fila{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.boton{background:var(--verde);color:#fff;border:0;border-radius:10px;padding:11px 18px;font-weight:600;box-shadow:0 2px 5px var(--sombra)}
+.boton:disabled{background:#a9c7b8}
+.boton.sec{background:#e8eeeb;color:var(--texto);box-shadow:none}
+.boton.peq{padding:8px 12px;font-size:14px}
+.pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:600}
+.pill.pendiente{background:var(--verde-claro);color:var(--verde-osc)}
+.pill.pronto{background:var(--amarillo);color:var(--amarillo-txt)}
+.pill.vencida{background:var(--rojo-suave);color:var(--rojo)}
+.pill.entregada{background:#eef0ef;color:var(--gris-claro)}
+.pill.corregida{background:#eef0ef;color:var(--gris)}
+label.check{display:inline-flex;align-items:center;gap:6px;font-size:14px;padding:6px 0}
+label.check input{width:20px;height:20px;accent-color:var(--verde)}
+select,input[type=text],input[type=search],input[type=password],textarea{border:1px solid var(--borde);border-radius:10px;padding:10px 12px;background:#fff;color:var(--texto);width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--verde);outline-offset:0;border-color:var(--verde)}
+
+/* Hoy */
+.hoy-clases{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-top:8px}
+.clase{min-width:150px;flex:1;border-radius:10px;padding:8px 10px;border-left:5px solid;background:#fff}
+.clase .h{font-size:12px;font-weight:600}
+.clase .n{font-weight:600;font-size:15px;margin:2px 0}
+.clase .p{font-size:12px;color:var(--gris);text-decoration:underline dotted}
+.clase.pasada{opacity:.55}
+.clase.ahora{box-shadow:0 0 0 2px currentColor inset}
+.eventos-hoy .pill{margin-left:6px}
+
+/* Tareas */
+.lista-tareas{display:flex;flex-direction:column;gap:8px}
+.tarea{background:#fff;border:1px solid var(--borde);border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:4px 12px;box-shadow:0 1px 3px var(--sombra)}
+.tarea.sel{background:var(--sel);border-color:var(--verde)}
+.tarea .t{font-weight:600;font-size:16px;grid-column:1}
+.tarea .a{color:var(--gris);font-size:13px;grid-column:1}
+.tarea .a span{text-decoration:underline dotted;cursor:pointer}
+.tarea .f{grid-column:2;grid-row:1/3;text-align:right;font-size:13px;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.tarea.vencida .t{color:var(--rojo)} .tarea.pronto .t{color:var(--naranja)} .tarea.entregada .t{color:var(--gris-claro)}
+.detalle .enunciado{white-space:pre-wrap;background:#f7faf8;border-radius:10px;padding:12px;font-size:15px;line-height:1.45;max-height:38vh;overflow:auto}
+.materiales{list-style:none;margin:8px 0 0;padding:0}
+.materiales li{padding:8px 10px;border-radius:8px;background:#f7faf8;margin-bottom:6px;font-size:14px;display:flex;justify-content:space-between;gap:8px}
+.materiales li a{text-decoration:none;font-weight:600}
+.materiales li small{color:var(--gris)}
+
+/* Horario semana */
+.semana{display:grid;grid-template-columns:52px repeat(5,1fr);gap:4px;font-size:12px}
+.semana .cab{text-align:center;font-weight:600;padding:6px 0;background:#f3f6f4;border-radius:6px}
+.semana .cab.hoy{background:var(--verde);color:#fff}
+.semana .hora{color:var(--gris);text-align:center;align-self:center;font-size:11px}
+.semana .celda{border-radius:8px;padding:6px 7px;min-height:56px;border-left:4px solid;background:#fff}
+.semana .celda.vacia{background:#fafbfa;border-left-color:transparent}
+.semana .celda .n{font-weight:600;font-size:12.5px}
+.semana .celda .p{color:var(--gris);text-decoration:underline dotted;cursor:pointer}
+.semana .pausa{grid-column:1/-1;text-align:center;color:var(--gris-claro);font-size:11px;padding:2px}
+.semana .celda.ahora{box-shadow:0 0 0 2px currentColor inset}
+
+/* Calendario */
+.cal-cab{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cal-cab .mes{font-weight:600;font-size:18px;color:var(--verde);min-width:170px;text-align:center}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal .dn{text-align:center;color:var(--gris);font-size:12px;font-weight:600;padding:4px 0}
+.cal .dia{min-width:0;overflow:hidden;background:#fbfcfb;border:1px solid var(--borde);border-radius:8px;min-height:84px;padding:4px;font-size:11px;cursor:pointer}
+.cal .dia.otro{background:#f1f3f2;color:var(--gris-claro)}
+.cal .dia.hoy{border:2px solid var(--verde)}
+.cal .dia.festivo{background:#fff6ec}
+.cal .dia .num{text-align:right;font-weight:600;font-size:12px;padding:0 3px}
+.cal .dia.hoy .num span{background:var(--verde);color:#fff;border-radius:5px;padding:1px 5px}
+.cal .ev{border-radius:5px;padding:2px 5px;margin-top:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.leyenda{display:flex;gap:6px;flex-wrap:wrap;font-size:12px}
+.leyenda span{padding:2px 8px;border-radius:6px}
+
+/* Glosario */
+.letras{display:flex;gap:3px;flex-wrap:wrap}
+.letras button{border:0;background:var(--bloque);color:var(--verde);font-weight:600;border-radius:6px;padding:6px 8px;min-width:32px}
+.letras button.sel{background:var(--verde);color:#fff}
+.glos{display:grid;grid-template-columns:minmax(200px,1fr) 2fr;gap:12px;min-height:0}
+.glos .lista{background:var(--bloque);border-radius:10px;overflow:auto;max-height:60vh;padding:4px}
+.glos .lista div{padding:9px 10px;border-radius:8px;cursor:pointer;font-size:15px}
+.glos .lista div.sel{background:var(--sel);color:var(--verde-osc);font-weight:600}
+.glos .lista div.solo-def{color:var(--gris)}
+.glos .def h3{margin:0 0 8px;color:var(--verde);font-size:20px}
+.glos .def p{line-height:1.5;font-size:15.5px;white-space:pre-wrap}
+.glos mark{background:var(--amarillo)}
+@media (max-width:700px){.glos{grid-template-columns:1fr}.glos .lista{max-height:32vh}}
+
+/* Asistente */
+.chat{display:flex;flex-direction:column;min-height:0;flex:1}
+.mensajes{flex:1;overflow:auto;background:#fff;border-radius:12px;border:1px solid var(--borde);padding:10px;display:flex;flex-direction:column;gap:8px;min-height:200px}
+.msg{max-width:88%;padding:9px 12px;border-radius:12px;white-space:pre-wrap;line-height:1.45;font-size:15px}
+.msg.yo{align-self:flex-end;background:var(--verde-claro)}
+.msg.ia{align-self:flex-start;background:#eef2f0}
+.msg.aviso{align-self:stretch;background:transparent;color:var(--gris);font-style:italic;font-size:13px;text-align:center}
+.msg .quien{display:block;font-size:11px;color:var(--gris);font-weight:600;margin-bottom:2px}
+.rapidas{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.rapidas button{background:#e8eeeb;border:0;border-radius:999px;padding:8px 12px;font-size:13px}
+.entrada{display:flex;gap:8px;align-items:stretch}
+.entrada input{flex:1;border:2px solid var(--verde);border-radius:12px;font-size:16px;padding:12px}
+.entrada .boton{font-size:16px;padding:12px 20px;border-radius:12px}
+
+/* Navegación inferior */
+nav{position:fixed;left:0;right:0;bottom:0;height:calc(var(--alto-nav) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);
+  background:#fff;border-top:1px solid var(--borde);display:flex;z-index:20;box-shadow:0 -2px 8px var(--sombra)}
+nav button{flex:1;border:0;background:none;color:var(--gris);font-size:12px;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+nav button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+nav button.activo{color:var(--verde)}
+nav button.activo::after{content:"";width:28px;height:3px;border-radius:2px;background:var(--verde);margin-top:1px}
+
+/* Tablet apaisada: asistente a la derecha, siempre visible */
+@media (min-width:1000px){
+  main{flex-direction:row}
+  #col-asistente{flex:0 0 380px;display:flex}
+  #panel-asistente{display:flex!important}
+  nav #nav-asistente{display:none}
+}
+@media (max-width:999px){ #col-asistente{display:none} #col-asistente.movil{display:flex;flex:1} #col-principal.oculto-movil{display:none} }
+
+/* Diálogos */
+.velo{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+.dialogo{background:#fff;border-radius:16px;padding:20px;max-width:560px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.dialogo h3{margin:0 0 10px}
+.dialogo .campo{margin:10px 0}
+.dialogo .campo label{display:block;font-size:13px;color:var(--gris);margin-bottom:4px}
+.dialogo .botones{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.dialogo .paso{background:var(--bloque);border-radius:10px;padding:10px 12px;margin:8px 0;font-size:14px}
+.dialogo code{background:#eef2f0;padding:1px 5px;border-radius:4px;font-size:13px}
+.portada{max-width:640px;margin:20px auto;text-align:center}
+.portada img{width:96px;height:96px;border-radius:22px;box-shadow:0 4px 14px var(--sombra)}
+.portada h1{margin:12px 0 6px;color:var(--verde)}
+a.boton{text-decoration:none;display:inline-flex;align-items:center;white-space:nowrap}
+</style>
+</head>
+<body>
+<header>
+  <img src="icono-192.png" alt="">
+  <div>
+    <div class="titulo">Classroom Help</div>
+    <div class="sub"><span id="cab-fecha"></span><b id="cab-reloj"></b></div>
+  </div>
+  <div class="chips" id="chips"></div>
+  <button class="btn-cab icono" id="btn-actualizar" title="Actualizar">⟳</button>
+  <button class="btn-cab icono" id="btn-ajustes" title="Ajustes">⚙</button>
+</header>
+
+<main>
+  <div class="columna" id="col-principal">
+
+    <!-- Portada (sin sesión) -->
+    <section class="panel activo" id="panel-portada">
+      <div class="portada tarjeta">
+        <img src="icono-192.png" alt="">
+        <h1>Classroom Help</h1>
+        <p class="info">Tus tareas de Google Classroom traducidas al castellano, con horario, calendario, glosario y un asistente que te ayuda a entender lo que te piden.</p>
+        <p><button class="boton" id="btn-entrar">Iniciar sesión con Google</button></p>
+        <p><button class="boton sec peq" id="btn-demo">Ver una demostración con datos de ejemplo</button></p>
+        <p class="info" id="portada-aviso"></p>
+      </div>
+    </section>
+
+    <!-- Hoy -->
+    <section class="tarjeta suave" id="hoy" style="display:none">
+      <div class="fila"><h2 id="hoy-titulo" style="margin:0">Hoy</h2><span class="info" id="hoy-resumen"></span><span class="eventos-hoy" id="hoy-eventos"></span></div>
+      <div class="hoy-clases" id="hoy-clases"></div>
+    </section>
+
+    <!-- Tareas -->
+    <section class="panel" id="panel-tareas">
+      <div class="tarjeta">
+        <div class="fila">
+          <select id="sel-asignatura" style="flex:1;min-width:180px"><option value="">Todas las asignaturas</option></select>
+          <label class="check"><input type="checkbox" id="chk-entregadas"> Ver entregadas</label>
+          <label class="check"><input type="checkbox" id="chk-traducir" checked> Traducir al castellano</label>
+          <label class="check"><input type="checkbox" id="chk-ahorro" checked> Modo ahorro de IA</label>
+        </div>
+      </div>
+      <div class="lista-tareas" id="lista-tareas"></div>
+      <div class="tarjeta detalle" id="detalle" style="display:none">
+        <h2 id="det-titulo"></h2>
+        <div class="info" id="det-sub"></div>
+        <div class="enunciado" id="det-enunciado"></div>
+        <div class="info" style="margin-top:10px">Materiales</div>
+        <ul class="materiales" id="det-materiales"></ul>
+        <div class="fila" style="margin-top:10px">
+          <a class="boton" id="det-abrir" target="_blank" rel="noopener" style="text-decoration:none">Abrir en Classroom para entregar</a>
+          <button class="boton sec" id="det-explicar">Explícame esta tarea</button>
+          <button class="boton sec" id="det-correo">✉ Escribir al profesor</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Horario -->
+    <section class="panel" id="panel-horario">
+      <div class="tarjeta">
+        <h2>Horario de la semana</h2>
+        <div class="semana" id="semana"></div>
+        <div class="info" id="horario-pie" style="margin-top:8px"></div>
+      </div>
+    </section>
+
+    <!-- Calendario -->
+    <section class="panel" id="panel-calendario">
+      <div class="tarjeta">
+        <div class="cal-cab">
+          <button class="boton sec peq" id="cal-ant">‹ Anterior</button>
+          <span class="mes" id="cal-mes"></span>
+          <button class="boton sec peq" id="cal-sig">Siguiente ›</button>
+          <button class="boton sec peq" id="cal-hoy">Hoy</button>
+          <button class="boton peq" id="cal-anadir" style="margin-left:auto">＋ Festivo o evento</button>
+        </div>
+        <div class="leyenda" style="margin:10px 0 6px">
+          <span class="pill pendiente">Entrega pendiente</span><span class="pill pronto">Entrega pronto</span><span class="pill vencida">Entrega vencida</span>
+          <span style="background:var(--naranja-suave);color:#8a4b00">Festivo</span><span style="background:var(--azul-suave);color:var(--azul)">Evento mío</span>
+        </div>
+        <div class="info" style="margin-bottom:6px">Toca un día para añadir · toca un festivo o evento tuyo para borrarlo · toca una entrega para verla</div>
+        <div class="cal" id="cal"></div>
+      </div>
+    </section>
+
+    <!-- Glosario -->
+    <section class="panel" id="panel-resumenes">
+      <div class="tarjeta">
+        <div class="fila"><h2 style="margin:0">Resúmenes semanales</h2><span class="info" id="res-estado" style="margin-left:auto"></span></div>
+        <p class="info" style="margin:6px 0 10px">Un documento por asignatura y semana con todo lo que cuelgan los profesores. Los genera Classroom Help en el PC y se guardan en tu Drive, en la carpeta «Classroom Help».</p>
+        <div id="res-lista" class="lista-tareas"></div>
+      </div>
+    </section>
+    <section class="panel" id="panel-glosario">
+      <div class="tarjeta">
+        <div class="fila"><h2 style="margin:0">Glosario de comercio internacional</h2><span class="info" id="glos-num"></span></div>
+        <input type="search" id="glos-buscar" placeholder="Buscar un término (por ejemplo: incoterm, aduana, FOB)…" style="margin:10px 0">
+        <div class="letras" id="glos-letras"></div>
+        <div class="glos" style="margin-top:10px">
+          <div class="lista" id="glos-lista"></div>
+          <div class="def" id="glos-def"><h3>Elige un término o escribe en el buscador</h3></div>
+        </div>
+        <div class="info" id="glos-fuente" style="margin-top:8px"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Asistente -->
+  <div class="columna" id="col-asistente">
+    <section class="panel tarjeta suave chat" id="panel-asistente" style="flex:1">
+      <div class="fila"><h2 style="margin:0">Asistente</h2><button class="boton sec peq" id="chat-nueva" style="margin-left:auto">Nueva</button></div>
+      <div class="mensajes" id="mensajes" style="margin-top:10px"></div>
+      <div class="rapidas">
+        <button data-p="__explicar">Explícame esta tarea</button>
+        <button data-p="¿Qué tengo que entregar esta semana y por dónde me recomiendas empezar?">¿Qué entrego esta semana?</button>
+        <button data-p="¿Qué clases tengo mañana y qué debería llevar preparado?">¿Qué tengo mañana?</button>
+      </div>
+      <form class="entrada" id="form-chat"><input type="text" id="chat-texto" placeholder="Pregunta algo de tus tareas…" autocomplete="off"><button class="boton" id="chat-enviar" type="submit">Preguntar</button></form>
+    </section>
+  </div>
+</main>
+
+<nav>
+  <button data-panel="tareas" class="activo"><svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h1M4 12h1M4 18h1"/></svg>Tareas</button>
+  <button data-panel="horario"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Horario</button>
+  <button data-panel="calendario"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Calendario</button>
+  <button data-panel="resumenes"><svg viewBox="0 0 24 24"><path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v6h6M8 13h8M8 17h8"/></svg>Resúmenes</button>
+  <button data-panel="glosario"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 19a2 2 0 0 1 2-2h12"/></svg>Glosario</button>
+  <button data-panel="asistente" id="nav-asistente"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.5A8 8 0 1 1 21 12z"/></svg>Asistente</button>
+</nav>
+
+<div id="dialogos"></div>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+
+// ---------- js1_base.js
+// ============================================================ Datos incrustados
+const HORARIO = {"grupo": "CINT1A", "curso": "2026-2027", "fuente": {"id": "1ilU0OqhFv-7hGINYHiBi6-bArG15gkLc", "nombre": "Horari CINT1A 26-27.pdf", "modificado": "2026-09-13T18:32:59Z"}, "pausas": [{"inicio": "11:40", "fin": "12:00"}], "clases": [{"dia": 0, "inicio": "08:40", "fin": "09:40", "asignatura": "Anglès Professional", "castellano": "Inglés (ING)", "corto": "ING", "codigo": "0179", "profesor": "Noemí Martorell"}, {"dia": 0, "inicio": "09:40", "fin": "10:40", "asignatura": "Anglès Professional", "castellano": "Inglés (ING)", "corto": "ING", "codigo": "0179", "profesor": "Noemí Martorell"}, {"dia": 0, "inicio": "10:40", "fin": "11:40", "asignatura": "Gestió administrativa del comerç internacional", "castellano": "Gestión administrativa del comercio internacional (GACI)", "corto": "GACI", "codigo": "0627", "profesor": "Noemí Baca"}, {"dia": 0, "inicio": "12:00", "fin": "13:00", "asignatura": "Transport internacional de mercaderies", "castellano": "Transporte internacional de mercancías (TIM)", "corto": "TIM", "codigo": "0622", "profesor": "Sonia Sánchez"}, {"dia": 0, "inicio": "13:00", "fin": "14:00", "asignatura": "IPO1", "castellano": "Itinerario personal para la empleabilidad I (IPO I)", "corto": "IPO I", "codigo": "1709", "profesor": "Sonia Sánchez"}, {"dia": 0, "inicio": "14:00", "fin": "15:00", "asignatura": "IPO1", "castellano": "Itinerario personal para la empleabilidad I (IPO I)", "corto": "IPO I", "codigo": "1709", "profesor": "Sonia Sánchez"}, {"dia": 1, "inicio": "08:40", "fin": "09:40", "asignatura": "IPO1", "castellano": "Itinerario personal para la empleabilidad I (IPO I)", "corto": "IPO I", "codigo": "1709", "profesor": "Sonia Sánchez"}, {"dia": 1, "inicio": "09:40", "fin": "10:40", "asignatura": "Sistema d'Informació de Mercats", "castellano": "Sistema de información de mercados (SIM)", "corto": "SIM", "codigo": "0822", "profesor": "Laura Regalado"}, {"dia": 1, "inicio": "10:40", "fin": "11:40", "asignatura": "Transport internacional de mercaderies", "castellano": "Transporte internacional de mercancías (TIM)", "corto": "TIM", "codigo": "0622", "profesor": "Sonia Sánchez"}, {"dia": 1, "inicio": "12:00", "fin": "13:00", "asignatura": "Transport internacional de mercaderies", "castellano": "Transporte internacional de mercancías (TIM)", "corto": "TIM", "codigo": "0622", "profesor": "Sonia Sánchez"}, {"dia": 1, "inicio": "13:00", "fin": "14:00", "asignatura": "Gestió administrativa del comerç internacional", "castellano": "Gestión administrativa del comercio internacional (GACI)", "corto": "GACI", "codigo": "0627", "profesor": "Noemí Baca"}, {"dia": 2, "inicio": "08:40", "fin": "09:40", "asignatura": "Optativa", "castellano": "Herramientas digitales (HD)", "corto": "HD", "codigo": "OPT", "profesor": "Miquel Àngel Picó"}, {"dia": 2, "inicio": "09:40", "fin": "10:40", "asignatura": "Optativa", "castellano": "Herramientas digitales (HD)", "corto": "HD", "codigo": "OPT", "profesor": "Miquel Àngel Picó"}, {"dia": 2, "inicio": "10:40", "fin": "11:40", "asignatura": "Logística d'emmagatzematge", "castellano": "Logística de almacenamiento (LA)", "corto": "LA", "codigo": "0625", "profesor": "Miquel Àngel Picó"}, {"dia": 2, "inicio": "12:00", "fin": "13:00", "asignatura": "Logística d'emmagatzematge", "castellano": "Logística de almacenamiento (LA)", "corto": "LA", "codigo": "0625", "profesor": "Miquel Àngel Picó"}, {"dia": 2, "inicio": "13:00", "fin": "14:00", "asignatura": "Gestió administrativa del comerç internacional", "castellano": "Gestión administrativa del comercio internacional (GACI)", "corto": "GACI", "codigo": "0627", "profesor": "Noemí Baca"}, {"dia": 3, "inicio": "08:40", "fin": "09:40", "asignatura": "Francès", "castellano": "Francés", "corto": "Francés", "codigo": "C001", "profesor": "Josée Hernández"}, {"dia": 3, "inicio": "09:40", "fin": "10:40", "asignatura": "Francès", "castellano": "Francés", "corto": "Francés", "codigo": "C001", "profesor": "Josée Hernández"}, {"dia": 3, "inicio": "10:40", "fin": "11:40", "asignatura": "Tutoria GS", "castellano": "Tutoría", "corto": "Tutoría", "codigo": "TUT-GS", "profesor": "Laura Regalado"}, {"dia": 3, "inicio": "12:00", "fin": "13:00", "asignatura": "Gestió econòmica i financera de l'empresa", "castellano": "Gestión económica y financiera de la empresa (GEF)", "corto": "GEF", "codigo": "0623", "profesor": "Noemí Baca"}, {"dia": 3, "inicio": "13:00", "fin": "14:00", "asignatura": "Gestió econòmica i financera de l'empresa", "castellano": "Gestión económica y financiera de la empresa (GEF)", "corto": "GEF", "codigo": "0623", "profesor": "Noemí Baca, Silvia García"}, {"dia": 4, "inicio": "09:40", "fin": "10:40", "asignatura": "Sistema d'Informació de Mercats", "castellano": "Sistema de información de mercados (SIM)", "corto": "SIM", "codigo": "0822", "profesor": "Laura Regalado"}, {"dia": 4, "inicio": "10:40", "fin": "11:40", "asignatura": "Gestió administrativa del comerç internacional", "castellano": "Gestión administrativa del comercio internacional (GACI)", "corto": "GACI", "codigo": "0627", "profesor": "Noemí Baca"}, {"dia": 4, "inicio": "12:00", "fin": "13:00", "asignatura": "Gestió econòmica i financera de l'empresa", "castellano": "Gestión económica y financiera de la empresa (GEF)", "corto": "GEF", "codigo": "0623", "profesor": "Noemí Baca, Silvia García"}, {"dia": 4, "inicio": "13:00", "fin": "14:00", "asignatura": "Optativa", "castellano": "Herramientas digitales (HD)", "corto": "HD", "codigo": "OPT", "profesor": "Miquel Àngel Picó"}]};
+const GLOSARIO = {"fuente": "GLOSARIO TERMINOS COMERCIO INTERNACIONAL.pdf (Classroom, Noemí Baca)", "terminos": [{"termino": "Accesión Aduanera", "definicion": "Incorporación de un Estado al territorio aduanero de otro. ACE Acuerdo de Complementación Económica. Son aquellos convenios suscritos entre países y que están preferentemente orientados a eliminar restricciones que distorsionan y afectan negativamente el intercambio comercial y las inversiones entre ellos."}, {"termino": "ACP", "definicion": "Países de África, Caribe y Pacífico."}, {"termino": "Acuerdos Comerciales", "definicion": "Contratos entre dos o más países, mediante los cuales se regulan materias estrictamente comerciales. Tienen carácter de tratados arancelarios para procurar ventajas y seguridad en las aplicaciones de las tarifas y regímenes aduaneros que afectan a los contratantes."}, {"termino": "Acuerdos de Nueva Generación", "definicion": "Tratados comerciales que en sus cláusulas contienen nuevas áreas como los servicios, inversión, propiedad intelectual, compras gubernamentales, normas técnicas, prácticas desleales de comercio entre otras."}, {"termino": "Ad Valorem", "definicion": "Arancel basado en un porcentaje del valor de la carga."}, {"termino": "Aditivo Alimentario", "definicion": "Cualquier sustancia que no se consume, normalmente, como alimento por si misma ni se usa como ingrediente típico del alimento, tenga o no valor nutritivo, cuya adición intencional al alimento para un fin tecnológico (inclusive organoléptico) en la fabricación, elaboración, tratamiento, envasado, empaquetado, transporte o almacenamiento provoque o pueda esperarse razonablemente que provoque (directa o indirectamente), el que ella misma o sus subproductos lleguen a ser un complemento del alimento o afecten a sus características."}, {"termino": "Admision Temporal", "definicion": "Régimen aduanero por el cual se permite el ingreso dentro del territorio aduanero de un país, sin que estas pierdan su calidad de extranjeras, con suspensión de los derechos y tasas a la importación, de mercaderías importadas con un propósito definido y destinadas a ser reexportadas, ya sea en su estado originario o como resultado de determinadas transformaciones o reparaciones dentro de un plazo preestablecido en la normativa que regula este régimen. Se debe constituir una garantía a favor de la aduana que otorga el régimen."}, {"termino": "ADR", "definicion": "Acuerdo Europeo sobre Transporte Internacional de Mercancías Peligrosas por Carretera."}, {"termino": "Aduana", "definicion": "Unidad administrativa encargada de la aplicación de la legislación relativa a la importación y exportación de mercadería, como el control del tráfico de los bienes que se internan o externa de un territorio aduanero, realizando su valoración, clasificación y verificación, y de la aplicación y la fiscalización de un régimen arancelario y de prohibiciones."}, {"termino": "AEIE", "definicion": "Agrupación Europea de Interés Económico"}, {"termino": "AELC", "definicion": "Acuerdo Europeo de Libre Comercio. Desde 1958. Islandia, Liechtenstein, Noruega y Suiza."}, {"termino": "Aforo", "definicion": "Operación única que consiste en practicar en una misma actuación el examen físico y la revisión documental, de tal manera que se compruebe la clasificación de las mercancías, su avaluación, la determinación de su origen cuando proceda, y los demás datos necesarios para fines de tributación y fiscalización aduanera."}, {"termino": "Agente de Aduana", "definicion": "Profesional auxiliar de la función pública aduanera , cuya licencia lo habilita ante la Aduana para prestar servicios a terceros como gestor en el despacho de mercancías."}, {"termino": "Agente de Transporte Aduanero (A.T.A.)", "definicion": "Persona de existencia visible o ideal que, en representación de los transportistas, tiene a su cargo las gestiones relacionadas con la presentación del medio transportador y de sus cargas ante la Aduana."}, {"termino": "ALCA (Área de Libre Comercio de las Américas)", "definicion": "Acuerdo propuesto en 1994 durante la Reunión de Jefes de Estado del Continente, realizado en Miami, tiene como meta eliminar las barreras aduaneras entre los países de la Región."}, {"termino": "Almacén Particular", "definicion": "Locales o recintos particulares habilitados por el Servicio de Aduanas, por un período determinado, para el depósito de mercancías, sin previo pago de los derechos e impuestos que causen en su importación. ANSEA. Asociación de Naciones del Sudeste Asiático. Desde 1967. Miembros: Brunei, Malasia, Filipinas, Singapur y Tailandia. Papúa Nueva-Guinea , Vietnam y Laos son observadores. Corea del Sur posee un estatuto especial."}, {"termino": "Antidumping", "definicion": "Derecho que intenta desalentar o prevenir el dumping; normalmente el objetivo es el de imponer un derecho que equivalga a la diferencia entre el precio de venta de los bienes en el país de origen, y el precio de venta en el país del importador. ANZUS. Desde 1951 entre Australia, Estados Unidos y Nueva Zelanda. APEC. Cooperación Económica en Asia Pacífico. Desde 1989 . Miembros : Brunei, Malasia, Filipinas, Indonesia, Singapur, Tailandia, Australia, Nueva Zelanda, Japón, USA, Canadá, México, Papúa Nueva Guinea, Corea del Sur, China, Taiwan y Hong Kong."}, {"termino": "Aprovisionamiento", "definicion": "El embarque de mercancías nacionales o nacionalizadas, de rancho, destinadas a las naves o aeronaves, nacionales o extranjeras, que no efectúen transporte internacional."}, {"termino": "Arancel", "definicion": "Impuesto o derecho de aduana, que se cobra sobre una mercancía cuando ésta se importa o exporta. ARBITRAJE. Método de resolver disputas que suele obligar a la s partes implicadas."}, {"termino": "Área Aduanera", "definicion": "Es la parte del territorio político limitada por la línea aduanera, en la cual, para que tenga acceso la mercancía procedente del exterior y también para franquear la salida a las del país, se hacen efectivos los preceptos de la legislación específica aduanera y, cuando procede, los derechos o impuestos del arancel o tarifa, que es consecuencia natural de aquella legislación."}, {"termino": "Armador", "definicion": "Persona bajo cuyo nombre y responsabilidad directagira la expedición o la gestión de la explotación del buque."}, {"termino": "Arrumaje", "definicion": "Acondicionamiento de la carga de un buque con el de que esta no se dañe o eche a perder. ATEIA. Asociación de Transitarios Internacionales yAsimi lados. ATP. Acuerdo Internacional sobre Transporte Internacion al de Mercancías Perecederas y sobre Vehículos Especiales."}, {"termino": "Autorización de Uso y Consumo", "definicion": "Corresponde al pronunciamiento de la Autoridad Sanitaria a través de una Resolución mediante la cual autoriza el uso y consumo de un alimento importado, el cual cumple con lo establecido en el Reglamento Sanitario de los Alimentos. Auxiliares del Servicio Aduanero También auxiliares del comercio; son personas de ex istencia visible o ideal, conocidos como agentes de comercio exterior, para gestionar en nombre y por cuenta de un tercero las registraciones y los trámites de introducción y extracción de mercadería ante el organismo fiscalizador. Encontramos aquí al Despachante de Aduanas y Agente de Transporte Aduanero."}, {"termino": "Avería gruesa", "definicion": "Cuando se ha hecho intencionada y razonablemente un daño o sacrificio de la mercancía con el objetivo de preservar un buque y/o las otras mercancías."}, {"termino": "Aviso de Expedición", "definicion": "Es el documento con que el expedidor comunica al designatario designado en la orden de expedición que se ha llevado a cabo el envío de mercancías. - B -"}, {"termino": "Back to back", "definicion": "Cuando el beneficiario del crédito no es el proveedor final de la mercancía y el crédito recibido no es transferible, el exportador puede solicitar a su Banco que emita un nuevo crédito documentario respaldado por el primer crédito recibido. Son dos créditos distintos (a diferencia del transferible). Son operaciones muy complejas y con elevado riesgo para los bancos."}, {"termino": "BACO", "definicion": "Barge Container Carrier. Buque"}, {"termino": "BAF (Bunker Adjustement Factor)", "definicion": "Factor de Ajuste de Combustible. Influye en el cálculo del flete marítimo."}, {"termino": "BAfD", "definicion": "Banco Africano de Desarrollo."}, {"termino": "Balanza Comercial", "definicion": "Conjunto de transacciones comerciales realizadas por un país con el exterior, en un periodo determinado (un año), consistentes en la importaciones y exportaciones de mercancías consideradas en su conjunto, exteriorizándose el resultado de tres maneras distintas, conforme a los resultados de los valores totales intercambiados, puede ser: Balanza comercial nivelada ( cuando la importación y la exportación se equilibran), deficitaria o favorable ( exceso de importación sobre exportación) y, favorables o con superávit ( exceso de exportación sobre importación)."}, {"termino": "Banco aceptador", "definicion": "Similar al Banco pagador, pero en este caso, acepta un efecto al vencimiento en lugar de pagar o comprometerse al pago."}, {"termino": "Banco avisador", "definicion": "Es el Banco corresponsal del Banco emisor en el país del exportador. Solo adquiere el compromiso de avisar al beneficiario de la apertura del crédito."}, {"termino": "Banco Confirmador", "definicion": "Garantiza el pago por parte del Banco emisor. Se usa cuando las garantías que ofrece el Banco emisor no se consideran suficientes. Suele ser el Banco avisador. Dentro de la carta de crédito, es el banco que da su confirmación a la misma. Puede ser tanto un tercer banco como el banco “corresponsal”."}, {"termino": "Banco Corresponsal", "definicion": "Dentro de la carta de crédito, es el banco que recibe la notificación de la apertura de una carta de crédito y las condiciones del mismo. Comunica esto al exportador."}, {"termino": "Banco Emisor o Interviniente", "definicion": "Recibe las instrucciones de su cliente (el importador) para la apertura de un crédito documentario a favor del exportador."}, {"termino": "Banco Negociador", "definicion": "Compra (descuenta) un efecto al exportador. Aunque el pago suela ser diferido, el exportador cobra a la vista (con o sin intereses)."}, {"termino": "Banco Pagador", "definicion": "Generalmente es un Banco en el país del exportador , que recibe el mandato del Banco emisor para pagar o comprometerse al pago contra presentación de la documentación exigida. Para el exportador es conveniente que exista un Banco pagador en su país."}, {"termino": "BAsD", "definicion": "Banco Asiático de Desarrollo."}, {"termino": "BEI", "definicion": "Banco Europeo de Inversiones."}, {"termino": "Beneficiario", "definicion": "Persona a cuyo favor se emite el crédito y que puede exigir el pago al Banco emisor o al pagador una vez ha cumplido las condiciones estipuladas en el crédito. Es el exportador."}, {"termino": "BERD", "definicion": "Banco Europeo de Reconstrucción y Desarrollo."}, {"termino": "BID", "definicion": "Banco Interamericano de Desarrollo."}, {"termino": "Bien de capital", "definicion": "Máquinas, vehículos, equipos, máquinas herramientas y herramientas destinadas, directa o indirectamente, a la producción de bienes o servicios o a la comercialización de los mismos."}, {"termino": "Bill of Lading", "definicion": "Es un recibo dado al embarcador por las mercancías entregadas. Demuestra la existencia de un contrato de transporte marítimo y otorga derechos sobre la mercancía."}, {"termino": "BISE", "definicion": "Boletín de Información Selectiva de Exportación. Base de Datos ICEX"}, {"termino": "BL a la Orden", "definicion": "(To the Order). Cuando un BL es a la orden, el propietario de la mercancía (el poseedor del BL), puede convertirlo: en nominativo (mediante endoso), ponerlo a la orden de otra firma o dejarlo con el endoso firmado en blanco. Son los más utilizados."}, {"termino": "BL al Portador", "definicion": "( To the bearer): el poseedor del documento es el propietario de la mercancía."}, {"termino": "BL House", "definicion": "Cuando el BL lo emite un transitario. Es un documento no negociable, que no da derechos sobre la mercancía."}, {"termino": "BL Nominativo", "definicion": "Son extendidos a nombre de una persona determinada , que podrá hacerse cargo de la mercancía previa identificación y presentación de uno de los BL originales. No admiten endoso."}, {"termino": "Bodega Destino", "definicion": "Recinto de depósito que cuenta con autorización sanitaria e individualizado en el certificado de destinación, donde las mercancías extranjeras permanecen almacenadas en espera de obtener la autorización de uso y consumo. Bodega de productos cosméticos y artículos de uso m édico: Lugar autorizado por resolución sanitaria para el almacenamiento de cosméticos y artículos de uso médico. - C -"}, {"termino": "Cabotaje", "definicion": "Transporte por mar de mercancías nacionales o nacionalizadas o la simple navegación entre dos puntos de la costa del país, aunque sea por fuera de sus aguas territoriales, pero sin tocar puerto extranjero."}, {"termino": "CAD", "definicion": "Pago contra documentos."}, {"termino": "CAF (Currency Adjustement Factor)", "definicion": "Factor de Ajuste de Moneda. Influye en el flete. CAG. Pago contra mercancías."}, {"termino": "Call Option", "definicion": "Opción de compra. Contrato que ofrece a su poseedor el derecho, no la obligación, de comprar una cantidad de divisas a un tipo de cambio predeterminado durante un período de tiempo o bien en la fecha de vencimiento del contrato."}, {"termino": "Cámara de Comercio", "definicion": "Asociación o institución que a nivel local, provincial, nacional o internacional, agrupa a los comerciantes (sean importadores, exportadores, industriales, mayorista, minoristas, etc.) con el objeto de proteger sus intereses, mejorar sus actividades comerciales sobre la base de la mutua cooperación y promover su prosperidad, así como también la de la comunidad en la cual se halla asentada."}, {"termino": "Carga", "definicion": "Se denomina así a aquellas mercaderías que son objeto de transporte mediante el pago de un precio. También se puede denominar carga a las mercaderías que un buque, un avión u otro tipo de vehículo transportador, tiene en su bodega o depósito en un momento dado."}, {"termino": "Carga unitarizada", "definicion": "Cabe entender por unitarización de una carga a la reunión o agrupación de cierto número de artículos o bultos en un solo conjunto con el propósito de facilitar su manipulación, estiba, almacenamiento, transporte o utilización posterior de su contenido."}, {"termino": "Cargador", "definicion": "Se entiende por tal a la persona física o jurídica que entrega una o más carga a un transportista. Es el usuario del servicio de transporte."}, {"termino": "CARICOM", "definicion": "Comunidad y Mercado Común del Caribe. Desde 1973. Principalmente países anglófonos: Antigua- Barbuda, Bahamas, Belice, Dominica, Granada, Montserrat, Sta Lucia, San Vicente y las Granadinas, St. Kitts y Nevis."}, {"termino": "Carrier", "definicion": "Transportista"}, {"termino": "Carta de Crédito Documentario", "definicion": "Medio de pago por el cual el Banco Emisor se compromete, por petición del importador, a pagarle al exportador una suma de dinero, previamente establecida, a cambio de que éste haga entrega de los documentos de embarque dentro de un período de tiempo dado."}, {"termino": "Carta de Garantía", "definicion": "Documento, expedido por una compañía de aeronavegación, que constituye la prueba de un contrato transporte de carga, siendo, al mismo tiempo, el comprobante de la recepción de las mercancías a ser transportada, con indicación del importe correspondiente en concepto de flete."}, {"termino": "Carta de Porte", "definicion": "Documento que las partes en un contrato de transporte otorgan, para acreditar la existencia y condiciones del contrato, y la entrega de las mercaderías al porteador."}, {"termino": "Carta de Porte Aérea", "definicion": "ver Guía aérea"}, {"termino": "CCI", "definicion": "Cámara de Comercio Internacional."}, {"termino": "CEAO", "definicion": "Comunidad Económica del África Occidental. Se funda en 1.973, con sede en Ouagadugudou (Burkina Faso). Son miembros: Benín, Burkina Faso, Costa de Marfil, Malí, Mauritania, Níger y Senegal. Guinea y Togo son observadores."}, {"termino": "CEDEAO", "definicion": "Comunidad Económica de los Estados de África Occidental. Desde 1977, sede en Lagos (Nigeria). Miembros: Benin, Burkina Faso, Cabo Verde, Costa de Marfil, Gambia, Ghana, Guinea, Guinea Bissau, Liberia, Malí, Mauritania, Níger, Senegal, Sierra Leona y Togo. CEI Comunidad de Estados Independientes. Desde 1991 . Miembros : Rusia, Bielorrusia, Ucrania, Moldavia, Azerbayán, Georgia, Armenia, Kazajastán, Turkmenistán y Tayikistán."}, {"termino": "Certificado Consular", "definicion": "Documento de autenticidad, expedido por las autoridades consulares de un país, sobre los contratos, precios y otros extremos de interés para los despacho de aduana."}, {"termino": "Certificado de Análisis", "definicion": "Documento que certifica que la naturaleza, composición, grado, etc. de la mercancía corresponde a la calidad contratada"}, {"termino": "Certificado de Depósito", "definicion": "Se exige en los casos en que la existencia de depósito previo obligue a haberlo realizado antes de despachar la mercancía."}, {"termino": "Certificado de Destinación Aduanera (CDA)", "definicion": "Corresponde al documento, emitido por la Autoridad Sanitaria o por el Servicio Agrícola y Ganadero según corresponda, que autoriza para retirar las mercancías desde los recintos aduaneros y almacenarlos en una bodega destino, a través de medios y rutas de transporte definidos, hasta que se emita la autorización de uso y consumo."}, {"termino": "Certificado de Inspección", "definicion": "Certificado que indica que las mercancías han sidoexaminadas y encontradas conformes con la mencionada en un contrato o una proforma. Lo realizan compañías especializadas. SGS, Bureau Veritas, Lloyd´s, etc. Generalmente se inspecciona el 10%. Certificado de origen Es un documento oficial mediante el cual el exporta dor de un bien o una autoridad certifica que el bien es originario del país o de la región por haber cumplido con las reglas de origen establecidas. Este documento se exige en el país de destino con objeto de determinar el origen de las mercancías."}, {"termino": "Certificado de Peso", "definicion": "Es un documento en el que se hace constar el peso de la mercancía (neto y bruto) bulto por bulto."}, {"termino": "Certificado de Sanidad o Fitosanitario", "definicion": "Documento que certifica que la mercancía ha sido examinada y se encuentra en perfectas condiciones para el consumo humano. Documento normalmente exigido en exportaciones de productos silvoagropecuarios, que certifica que los productos han sido examinados y que se ajustan a las disposiciones fitosanitarias vigentes en el país del exportador"}, {"termino": "Certificado de Seguro", "definicion": "Documento que prueba que se ha contratado el seguro de una expedición concreta. CFR. Cost And Freight. (Inglés). Incoterm. \"Coste y flete\" significa que el vendedor realiza la entrega cuando la mercancía sobrepasa la borda del buque en el puerto de embarque. El vendedor debe pagar los costes y el flete necesarios para llevar la mercancía al puerto de destino convenido, pero el riesgo de pérdida o daño de la mercancía corren por cuenta del comprador (Transporte Marítimo)."}, {"termino": "CFS", "definicion": "Container Freight Station. Estación de Flete de Contenedores."}, {"termino": "CGC", "definicion": "Consejo de Cooperación del Golfo. Desde 1979. Agrupa a Arabia Saudí, Bahrein, Emiratos Arabes Unidos, Kuwait, Omán y Qatar."}, {"termino": "CIF (Costo, Seguro y Flete)", "definicion": "Incoterm que significa que el vendedor debe hacer el despacho de la mercancía para su exportación y pagar los Costos y el Flete necesario para transportarla al destino indicado y también debe contratar un seguro marítimo para la mercancía del comprador. (Transporte marítimo)"}, {"termino": "CIM", "definicion": "Carta de Porte Internacional para Ferrocarril."}, {"termino": "CIP (Transporte y Seguro pagado hasta)", "definicion": "Incoterm que significa que el vendedor debe hacer el despacho de la mercancía para su exportación y pagar los Costos y el Flete necesario para transportarla al destino indicado y también debe contratar un seguro para la mercancía del comprador."}, {"termino": "Cláusula de la nación más favorecida", "definicion": "Cláusula insertada en los acuerdos o tratados de comercio, en la cual se estipula que todos los beneficios, ventajas o franquicias de cualquier género (en materia de aranceles, transportes, tasas , etc.) que conceda en el futuro a cualquier tercer país uno de los contratantes, se harán automáticamente extensivo a los otro contratantes."}, {"termino": "Cláusulas de Salva Guardia", "definicion": "Tienen por finalidad posibilitar a los países la ad opción con carácter transitorio de medidas de diversa naturaleza tendientes a contrarestar consecuencias indeseables para su economía."}, {"termino": "Cláusula roja", "definicion": "Permite al exportador disponer total o parcialmente del importe del crédito antes de presentar los documentos en él requeridos y aún antes de expedir la mercancía. Es una financiación del importador al exportador."}, {"termino": "CMR", "definicion": "Carta de Porte Internacional para transporte por Carretera. Coeficiente de Estiba( Ce) = V / P; Siendo V= Volumen (m3) y P = Peso (Tn3). COFIDES. Compañía de Financiación del Desarrollo."}, {"termino": "Collect Surcharge", "definicion": "Recargo por cobro del flete en destino. (Inglés): Porte debido, pagadero en destino."}, {"termino": "Collection Credits", "definicion": "En realidad no es un crédito documentario, sino que son créditos emitidos en la forma habitual pero disponibles para pago en las cajas del Banco emisor, es decir, el Banco emisor es el pagador. Es desaconsejable para el exportador, que le conviene más que el Banco pagador esté en su propio país."}, {"termino": "Comercio Clearing", "definicion": "Convenio entre dos países para saldar sus intercambios comerciales mediante la compensación de determinadas mercancías ."}, {"termino": "Comercio de compensación", "definicion": "También denominado trueque o intercambio, donde el comprador se compromete a adquirir la mercadería solo con la condición de que el vendedor utilice parte de las ganancias para comprar productos o materias primas del país del comprador que en otras circunstancias no serían comercializables."}, {"termino": "Commodities (inglés)", "definicion": "Término muy usado en tráfico internaciona l, a cuyosefectos significa materia a granel o, más bien, materia prima, cuyo concepto incluye también a los productos semielaborados, base de algún proceso industrial más complejo."}, {"termino": "Consejo del Mar Báltico", "definicion": "Creado en marzo de 1992. Miembros : Alemania, Dinamarca, Estonia, Finlandia, Letonia, Lituania, Noruega, Polonia, Rusia y Suecia."}, {"termino": "Consenso OCDE", "definicion": "Es un acuerdo entre los países más desarrollados para limitar las condiciones financieras de sus ofertas internacionales, evitando competencias financieras."}, {"termino": "Consolidación", "definicion": "Sistema de expedición de diversos paquetes de diferentes consignadores bajo un agente a un destino común. (GRUPAJE)"}, {"termino": "Conocimiento de embarque", "definicion": "Es un instrumento típico del transporte marítimo de carga cuya función primordial es constituir la prueba del contrato de fletamento, como recibo de las mercancías cargadas y al mismo tiempo, el título representativo de ella con todas las características de un documento negociable. Puede estar extendido a la orden de determinada persona o empresa o ser al portador. Puede ser negociable o no negociable"}, {"termino": "Conocimiento de Embarque Limpio a Bordo", "definicion": "Hace referencia al estado de la mercadería a bordo del buque. Limpio a bordo (clean on board) significa que en apariencia la carga no presenta deficiencia del embalaje, faltas de números u otras marcas."}, {"termino": "Conocimiento de Embarque a la Orden", "definicion": "(To The Order) Cuando un BL es a la orden, el propietario de la mercancía (el poseedor del BL), puede convertirlo: en nominativo (mediante endoso), ponerlo a la orden de otra firma o dejarlo con el endoso firmado en blanco. Son los más utilizados."}, {"termino": "Conocimiento de embarque nominativo", "definicion": "Son extendidos a nombre de una persona determinada, que podrá hacerse cargo de la mercancía previa identificación y presentación de uno de los BL originales. No admiten endoso."}, {"termino": "Conocimiento de Embarque", "definicion": "Documento que prueba la existencia de un contrato de transporte marítimo, y acredita que el transportador ha tomado a su cargo o ha cargado las mercancías y se ha obligado a entregarlas contra la presentación de ese documento a una persona determinada, a su orden o al portador."}, {"termino": "Consignatario", "definicion": "Persona designada por el expedidor del Producto para que se haga cargo de ella y la entregue al importador; el consignatario y el importador podrán ser la misma persona física o ideal, si así lo determina el remitente de la misma."}, {"termino": "Consolidación", "definicion": "Combinación de varias cargas pequeñas en un embarque unitario para aplicar las tasas portuarias correspondientes a los recipientes completos de carga."}, {"termino": "Contenedor", "definicion": "Embalaje metálico grande y recuperable, de tipos y dimensiones acordados internacionalmente."}, {"termino": "Contingente", "definicion": "Un Contingente es la eventual limitación para exportar o importar una determinada cantidad o durante un tiempo determinado, una mercancía."}, {"termino": "Contingente Arancelario", "definicion": "Durante un período de tiempo las exportaciones o las importaciones, no están gravadas por los aranceles aduaneros."}, {"termino": "Contingente Cuantitativo", "definicion": "Cuando se prohíbe exportar o importar: una determinada cantidad de mercancía, o durante un tiempo determinado un tipo de mercancía, o ambas prohibiciones juntas."}, {"termino": "Cooperación Económica del Mar Negro", "definicion": "Desde 1991. Miembros : Armenia, Azerbayan, Bulgaria, Georgia, Grecia, Moldavia, Rumania, Rusia , Turquía y Ucrania."}, {"termino": "Costes Bancarios Cred. Doc", "definicion": "Estos gastos bancarios son : preaviso, notificación y confirmación, comisiones de pago, pago diferido, aceptación o negociación, los costes de las modificaciones, la no utilización del crédito, los intereses de la negociación y los costes de los mensajes."}, {"termino": "CPA", "definicion": "Código de Procedimiento Aduanero."}, {"termino": "Courier", "definicion": "ver Empresas de envíos de entrega rápida."}, {"termino": "CPT (Transporte pagado hasta)", "definicion": "Incoterm que significa que el vendedor debe hacer el despacho de la mercancía para su exportación y pagar los Costos y el Flete necesario para transportarla al destino indicado. Esto significa que el comprador asume todos los riesgos y cualquier otro coste contraído después de que la mercancía haya sido así entregada."}, {"termino": "Crédito a la exportación", "definicion": "Crédito destinado al financiamiento de exportaciones. Las modalidades más frecuentes son: pre financiación, post financiación y la financiación de inversiones para exportar."}, {"termino": "Crédito Documentario contra Aceptación", "definicion": "El crédito es disponible contra aceptación de documentos y de un efecto librado a plazo (giro) contra un Banco designado por el crédito (Banco aceptador) que puede ser el propio emisor. El Banco aceptador asume el compromiso de pago al vencimiento independientemente si ha confirmado el crédito o no. El efecto puede ser descontado si el Banco lo considera oportuno. Los gastos de descuento son por cuenta del beneficiario, a menos que el crédito especifique lo contrario."}, {"termino": "Crédito documentario irrevocable", "definicion": "El crédito no puede ser modificado o cancelado sin el acuerdo del Banco emisor, Banco confirmador (si lo hubiese) y del beneficiario. Es un compromiso en firme por parte del Banco emisor en favor del exportador. A falta de una indicación clara en el crédito, éste será considerado como irrevocable."}, {"termino": "Crédito Documentario Contra Negociación", "definicion": "El crédito es disponible contra presentación de los documentos y de un efecto, a la vista o a plazo, librado contra el Banco emisor o contra el ordenante del crédito. El Banco negociador se limita a financiar al beneficiario por cuenta del Banco emisor. El Banco negociador compra por cuenta del emisor los derechos del beneficiario sobre el crédito. Puede ser negociado por cualquier Banco."}, {"termino": "Crédito Documentario Contra Pago", "definicion": "Se paga al beneficiario contra presentación de los documentos indicados en el crédito. El crédito es disponible sin efectos. En el caso de pago a la vista puede exigir un efecto librado por el beneficiario contra el Banco determinado en el crédito. Debe designar un Banco pagador que puede ser el propio emisor. Si es pagadero A LA VISTA y confirmado por el Banco pagador designado, éste no puede demorar el pago en espera de los fondos, previa comprobación de los documentos. Si es pagadero a PLAZO y confirmado, el Banco confirmador se compromete contra entrega de documentos a pagar al vencimiento. Si no fuese confirmado, el Banco puede comunicar que toma los documentos sin compromiso. El vencimiento puede estar fijado mediante: un plaz o, fecha recepción mercancía, fecha embarque mercancía, fecha entrega de documentos, etc."}, {"termino": "Crédito Documentario Irrevocable", "definicion": "El crédito no puede ser modificado o cancelado sin el acuerdo del Banco emisor, Banco confirmador (si lo hubiese) y del beneficiario. Es un compromiso en firme por parte del Banco emisor en favor del exportador."}, {"termino": "Crédito documentario revocable", "definicion": "Pueden ser anulados o modificados por el Banco emisor en cualquier momento y sin tener que avisar al beneficiario. Sin embargo el Banco emisor queda obligado por todos los pagos, compromisos, aceptaciones o negociaciones efectuadas con anterioridad al recibo de la notificación de modificación o cancelación. Se desaconseja absolutamente su uso, ya que no es un compromiso de pago en firme. En la práctica no se emplean nunca, salvo contadas excepciones. •• •• NOTA IMPORTANTE: a falta de una indicación clara en el crédito, ést e será considerado como irrevocable. El Crédito Documentario Irrevocable, puede ser confirmado o no confirmado."}, {"termino": "Crédito documentario transferible", "definicion": "Un Crédito Documentario Transferible es emitido a favor de un beneficiario que no es quien produce la mercancía sino un intermediario, que ha establecido un contrato de venta con un comprador, pero depende de una tercera parte (el exportador), para suministrar la mercancía a su cliente. Especialmente indicado para las Trading Companys. El beneficiario puede dar instrucciones al Banco pagador, aceptador o negociador para que el crédito sea utilizable, parcial o totalmente, por uno o más beneficiarios de su país o de otro país. Si se quiere que un Crédito Documentario sea Transferible, hay que especificarlo en las condiciones del crédito, indicando la mención transferible."}, {"termino": "Crédito documentario", "definicion": "Es un convenio en virtud del cual un Banco (Banco Emisor), obrando a petición de un cliente (ordenante) y de conformidad con sus instrucciones, se obliga a efectuar un pago a un tercero (beneficiario) o autoriza a otro Banco a efectuar dicho pago, contra presentación de los documentos exigidos dentro del tiempo límite especificando, siempre y cuando se hayan cumplido los términos y condiciones del crédito."}, {"termino": "Crédito Stand-by", "definicion": "(Inglés) Un crédito Stand-by es usado como un sustituto de un aval. Es un aval de ejecución documentaria sujeto a los URU´s ( Usos y Reglas Uniformes de la Cámara de Comercio Internacional). Se pueden usar en cualquier tipo de transacción y están basados en el concepto de incumplimiento de contrato por parte del ordenante del crédito Stand-by. documentario Irrevocable, puede ser confirmado o no confirmado."}, {"termino": "CS", "definicion": "Congestion Surcharge."}, {"termino": "CTBL", "definicion": "Combined Transport Bill of Lading. Documento de transporte multimodal."}, {"termino": "CY (Container Yard)", "definicion": "Almacén de contenedores"}, {"termino": "Charter Party", "definicion": "Si un exportador contrata un buque tramping el documento emitido es el BL Charter Party. No está regido por los mismos criterios que un BL normal. - D -"}, {"termino": "DACON", "definicion": "Base de Datos del Banco Mundial sobre Consultores."}, {"termino": "DAF (Delivered at Frontier)", "definicion": "(inglés) Incoterm 2000. \"Entregadas en frontera\" significa que el vendedor realiza la entrega cuando la mercancía es puesta a disposición del comprador sobre los medios de transporte utilizados y no descargado s, en el punto y lugar de la frontera convenidos, pero antes de la aduana fronteriza del país colindante, debiendo estar la mercancía despachada de exportación pero no de importación. DAT. Delivered at Terminal (ingles) Incoterm 2010. Entregado en la Terminal ó en el Puerto ó lugar convenido con el importador. El vendedor tiene la obligación de descargar la mercadería en el puerto de destino pero no tiene obligaciones respecto al despacho aduanero para la importación en el país de destino. (Sustituye a DEQ en los Incoterms 2000) DAP. Delivered at Place (inglés) Incoterm 2010. Entregado en lugar design ado, convenido previamente entre exportador e importador. El vendedor no tiene la obligación de descargar la mercadería en el punto de destino designado. Si incurre en gastos de descarga en destino no podrá recuperar dichos gastos del comprador a menos que lo haya acordado previamente. (Sustituye a DAF, DES y DDU en los INcorterms 2000)"}, {"termino": "DDP (Delivered Duty Paid)", "definicion": "(inglés) Incoterm 2010. \"Entregada derechos pagados \" significa que el vendedor realiza la entrega de la mercancía al comprador, despachada para la importación y no descargada de los medios de transporte, a su llegada al lugar de destino convenido. El vendedor tiene las mismas obligaciones que bajo DDU , pero además paga los derechos de la importación de la mercancía. Supone la mayor obligación y riesgos para el vendedor dentro de los Incoterms. No debe utilizarse si el vendedor no puede cumplir con los requisitos legales para la importación."}, {"termino": "DDU (Delivered Duty Unpaid)", "definicion": "(ingles) Incoterm 2000. \"Entregada con los derechos no pagados\" significa que el vendedor realiza la entrega de mercancía al comprador, no despachada de aduana para la importación y no descargada de los medios de transporte, a su llegada al lugar de destino convenido. El vendedor debe asumir todos los costes y riesgos contraídos al llevar la mercancía hasta aquel lugar ."}, {"termino": "Declaración de Aduana", "definicion": "Se denomina así al formulario impreso, debidamentecumplimentado por el importador/exportador que tiene como objetivo principales: permitir la liquidación y el cobro de los derechos, impuestos u otros gravámenes que se deba pagar por las mercancías, y fiscalizar la importación/exportación de mercancías sujetas a limitaciones y/o protecciones (flora, fauna) y/o prohibiciones y/o exenciones (derechos)."}, {"termino": "Declaración de Ingreso (DIN)", "definicion": "Documento mediante el cual se formaliza una destinación aduanera, el que deberá indicar la clase o modalidad de la destinación de que se trate."}, {"termino": "Depósito Aduanero", "definicion": "Lugar habilitado por la ley bajo el control de la Aduana donde se almacenan mercancías bajo su potestad hasta el momento del retiro para su importación, exportación u otra destinación aduanera, con exclusión de los almacenes particulares."}, {"termino": "Depósito de Productos Farmacéuticos de Uso Humano", "definicion": "Es la bodega destinada a almacenamiento de productos farmacéuticos importados terminados, y que ha sido autorizada para distribuir directamente dichos productos a otros establecimientos autorizados sanitariamente, para su uso o expendio."}, {"termino": "Depósito de Productos Farmacéuticos Dentales", "definicion": "Es aquel que mantiene para su distribución o expendio, productos farmacéuticos de uso exclusivodental. Podrá además, importar y distribuir dichos productos a otros establecimientos farmacéuticos autorizados o venderlos al público. DEQ. Delivered Ex Quay. (inglés). (Incoterm 2000). \"Entregada en muelle\" si gnifica que el vendedor realiza la entrega cuando la mercancía es puesta a disposición del comprador, sin despachar de aduana para la importación, en el muelle (desembarcadero) del puerto de destino convenido."}, {"termino": "Derechos de Aduana", "definicion": "Derechos establecidos en el Arancel Aduanero y/o en la legislación nacional, que gravan a las mercancías que entran al territorio nacional o que salen de él. Estos pueden consistir en: a) Derecho Ad-Valorem: Tributo que grava la importació n de mercancías y que se fija en proporción a su valor aduanero; b) Derecho Específico: Tributo que grava la importació n de mercancías en una cantidad fija de dinero, que se determina en base a una unidad de medida, ya sea kilogramo, tonelada, litro, docena, metro, etc. DEG. Derecho Especial de Giro"}, {"termino": "Depósito Aduanero", "definicion": "Son unos recintos, bajo el control de la Aduana en el que las mercancías no abonan derechos de importación. Se usan sobre todo cuando un importador no sabe cuál será el destino final de la importación. Se permiten las mismas operaciones que en las Zonas Francas. DEQ. Incoterm 2000. Entregado junto al muelle. (antes E XQ)."}, {"termino": "DES (Delivered Ex Ship)", "definicion": "(inglés) Incoterm 2000. \"Entregada sobre buque\" significa que el vendedor realiza la entrega cuando la mercancía es puesta a disposición del comprador a bordo del buque, no despachada de aduana para la importación, en el puerto de destino convenido."}, {"termino": "Desaduanamiento", "definicion": "Cumplimiento de las formalidades aduaneras necesarias para exportar, importar o para realizar cualquier destinación aduanera."}, {"termino": "Despachador de Aduana", "definicion": "Los Agentes de Aduana y los consignantes o consignatarios con licencia para despachar."}, {"termino": "Despacho de Mercancías", "definicion": "Gestiones, trámites y demás operaciones que se efectúen ante el Servicio en relación con las destinaciones aduaneras."}, {"termino": "Desplazamiento de Rosca", "definicion": "Es el peso del buque construido pero sin combustible, equipajes, tripulación ni carga."}, {"termino": "Destinación Aduanera", "definicion": "Manifestación de voluntad del dueño, consignanteo consignatario que indica el régimen aduanero que debe darse a las mercancías que ingresan o salen del territorio nacional."}, {"termino": "Destinación Aduanera", "definicion": "Manifestación de voluntad del dueño, consignatario o remitente de la mercancía que, expresada mediante la Declaración, indica el régimen aduanero que debe darse a las mercancías que se encuentran bajo la potestad aduanera."}, {"termino": "DIN", "definicion": "ver Declaración de Ingreso."}, {"termino": "Divisa", "definicion": "Medio de pago internacional representado por una moneda extranjera emergente de los créditos que un país tiene contra otro por el suministro de mercancías, capitales o servicios, o por las autorizaciones que éste le haya conferido para efectuar pagos girando temporariamente en descubiertos."}, {"termino": "Documento Único de Salida (DUS)", "definicion": "Es el documento mediante el cual se presentan las mercancías, ante el Servicio Nacional de Aduanas, para su posterior embarque al exterior. DOD. Derecho de Obtención de Divisas. Son los gastos y comisiones bancarias para el pago del flete marítimo. Aprox. 1% del flete."}, {"termino": "Drawback", "definicion": "Restitución o devolución, total o parcial, de los derechos de importación u otros impuestos internos sobre materias primas o mercancías importadas, cuando son reexportadas, ya sea con un mayor grado de elaboración o formando parte, en mayor o menor proporción, de otros artículos que se exportan."}, {"termino": "Droguería", "definicion": "Es el establecimiento autorizado por resolución sanitaria, destinado a la importación, fraccionamiento, distribución y venta de drogas a granel, sustancias químicas, reactivos, colorantes permitidos, aparatos de física y química y accesorios médicos y quirúrgicos."}, {"termino": "Dumping", "definicion": "Venta de productos de un país a otro a precios inferiores a los de exportación establecidos o por debajo de los costos de producción en el país de origen. - E -"}, {"termino": "ECU (European Currency Unity)", "definicion": "Unidad de Cuenta Europea."}, {"termino": "EDI", "definicion": "Intercambio Electrónico de Datos."}, {"termino": "EEE", "definicion": "Espacio Económico Europeo. Desde 1992 agrupa a los países de la Unión Europea y a los de la AELC."}, {"termino": "EFTA", "definicion": "Asociación Europea de Libre Comercio. (AELC)"}, {"termino": "EIP (European Investment Partners)", "definicion": "Programa europeo que subvenciona la creación de empresas mixtas o inversiones en los países mediterráneos, Asia y Sudamérica."}, {"termino": "ELS (Extra Lenght Surcharge)", "definicion": "Recargo por longitud en el flete."}, {"termino": "Embalaje", "definicion": "Protección de las mercaderías durante todas las operaciones de transporte y manejo que supone el proceso de exportación, de modo que lleguen a manos del cliente final, en el extranjero, en las mejores condiciones."}, {"termino": "Embarque", "definicion": "Carga en un vehículo o nave."}, {"termino": "Empresas de envíos de entrega rápida", "definicion": "Denominadas normalmente empresas de correo rápido, courier o de transportes expresos, son aquellas personas naturales o jurídicas, legalmente establecidas en el país, cuyo giro o actividad principal es la prestación de los servicios a terceros, para la expedita recolección, transporte, entrega, localización y mantenimiento del control de los documentos, material impreso, paquetes u otras mercancías durante todo el suministro del servicio."}, {"termino": "Enclaves", "definicion": "Territorios que no forman parte del área política de un país, y que por conveniencia de administración se incorporan al sistema aduanero de éste. Los enclaves pueden, por consiguiente, ser exclusiones o exclaves de otros países o áreas políticas independientes."}, {"termino": "Envase", "definicion": "Continente interior o exterior con que normalmente se presentan las mercancías, siempre que éste sea común o usual en el comercio internacional."}, {"termino": "Envíos Postales", "definicion": "Envíos de documentos y mercancías por intermedio de la Empresa de Correos de Chile, efectuados de acuerdo a las convencionespostales internacionales."}, {"termino": "Equipaje de Viajeros", "definicion": "Se comprenderá en este concepto: a) Los artículos nuevos o usados que porte un viajero para su uso personal o para obsequios, con exclusión de mercancías que por su cantidad o valor hagan presumir su comercialización; b) Los objetos de uso exclusivo para el ejercicio de profesiones u oficios, usados, y; c) hasta una cantidad que no exceda, por persona adulta, de 400 unidades de cigarrillos, 500 gramos de tabaco de pipa; 50 unidades de puros y 2. 500 centímetros cúbicos de bebidas alcohólicas."}, {"termino": "ERM", "definicion": "Exchange Rate Mechanism. Mecanismo de Cambios e Intervención"}, {"termino": "Estacionalidad", "definicion": "Período de tiempo asociado a determinadas actividades productivas, que se repite cíclicamente todos los años."}, {"termino": "EUR.1", "definicion": "Documento que sirve como justificante del trato preferencial entre dos países. Sirve para exportar e importar."}, {"termino": "Eurodivisa", "definicion": "Son divisas convertibles, fuera del control de las autoridades monetarias del país de origen."}, {"termino": "Euromarkets Rate", "definicion": "Tasas de interés al mercado internacional de capitales para la contratación de préstamos o inversiones en distintas monedas."}, {"termino": "EWS (Extra Weight Surcharge)", "definicion": "Recargo por sobre peso en la contratación del flete."}, {"termino": "Exámen físico", "definicion": "Reconocimiento material de las mercancías efectuado por el Servicio."}, {"termino": "Exclaves", "definicion": "Son aquellas partes del área política de u país administradas, por convención, como parte del sistema aduanero de otro Estado."}, {"termino": "Exportación", "definicion": "Desde un punto de vista comercial se entiende port al la salida de una mercancía de un territorio aduanero, ya sea en forma temporal o definitiva."}, {"termino": "EXW (EX Works)", "definicion": "(inglés) Incoterm. En fábrica significa que el vendedor realiza la entrega de la mercancía cuando la pone a disposición del comprador en el establecimiento del vendedor o en otro lugar convenido (es decir, taller, fábrica, almacén, etc.), sin despacharla para la exportación ni cargarla en un vehículo receptor. - F –"}, {"termino": "Factoring", "definicion": "Cesión que la empresa exportadora hace a un intermediario financiero sobre el derecho de cobro de los créditos otorgados, a un interés preestablecido, pudiendo este asumir o no el riesgo de la operación."}, {"termino": "Factura Proforma", "definicion": "Es una prefactura entregada por el exportador al importador, con el objetivo de dar a conocer al importador con exactitud el precio que pagará por las mercancías y la forma de pago. Cuando el importador la remitefirmada al exportador da aceptación a la misma."}, {"termino": "FAD", "definicion": "Fondos de Ayuda al Desarrollo (créditos a países en vías de desarrollo). FAS. Free Alongside Ship (Franco al costado de la n ave): Incoterm 2000. Significa que el vendedor se hace responsable de colocar la mercancía al costado de la nave en el muelle o en las barcazas, en el lugar indicado en la cotización ."}, {"termino": "FBL", "definicion": "Conocimiento FIATA negociable para transporte multimodal."}, {"termino": "FCA (Franco en el medio de transporte)", "definicion": "Incoterm 2010. Significa que el vendedor debe entregar la mercancía despachada para la exportación al transportista nombrado por el comprador, en el lugar indicado en las condiciones de embarque. El vendedor está obligado a cargar la mercadería en el medio de transporte del comprador si éste lo recoge de la empresa, por lo contrario no está obligado a descargar si el lugar elegido es otro y debe usar su transporte propio."}, {"termino": "FCL Full Container Load", "definicion": "Contenedor de carga llena. FCLA (Full Container Load Allowance). Rebaja en el flete por uso de container completo."}, {"termino": "Fecha de Embarque", "definicion": "Es aquella que se estipula en la declaración de exportación. Se registra también en el Conocimiento de Embarque, Guía Aérea o Carta de Porte emitida por la respectiva empresa de transporte. A partir de esta fecha se establecen los plazos dentro del proceso de exportación."}, {"termino": "Feder Vessel", "definicion": "Buques alimentadores."}, {"termino": "Ficha técnica o monografía", "definicion": "Descripción o tratado sobre un alimento en particular, que incluye a lo menos la composición química y nutricional del producto, la descripción de procesos, los estándares de calidad y las condiciones de almacenamiento que requiere."}, {"termino": "FILO (Free in Liner Out)", "definicion": "Cláusula contratación flete. La totalidad de las operaciones portuarias son por cuenta de la mercancía, excepto la desestiba en destino."}, {"termino": "FIOS (Free in and out stowed)", "definicion": "Cláusula contratación flete. La totalidad de las operaciones portuarias son por cuenta de la mercancía. El flete sólo cubre el transporte marítimo."}, {"termino": "Flete", "definicion": "Coste del transporte marítimo. (Freight)"}, {"termino": "FOB (Free on Board)", "definicion": "(inglés). Incoterm 2010. \"Franco a bordo\" significa que el vendedor realiza la entrega cuando la mercancía sobrepasa la borda del buque en el puerto de embarque convenido. Esto quiere decir que el comprador debesoportar todos los costes y riesgos de pérdido o daño de la mercancía desde aquel punto. El término FOB exige al vendedor despachar la mercancía en aduana para la exportación."}, {"termino": "FORFAITING", "definicion": "Compra de letras de cambio aceptadas, créditos documentarios u otras promesas de pago, renunciando el adquiriente de estos efectos a cualquier derecho o demanda frente al exportador y los anteriores titulares. Formulario A - Certificado de Origen del SPG (Sistema de Preferencias Generalizadas): Es un documento de importación. Demuestra el trato preferencial otorgado a los países en vías de desarrollo."}, {"termino": "Forwarder", "definicion": "(inglés) Expedidor, remitente, transitario."}, {"termino": "FPA (Free of Particular Average)", "definicion": "Franco de Avería Particular. Esta cláusula protege a las mercancías contra pérdida, daños totales y averíasgruesas."}, {"termino": "FRA (Forward Rate Agreement)", "definicion": "Es un acuerdo entre dos partes sobre el tipo de interés a aplicar en un depósito en una fecha futura."}, {"termino": "Franquicia", "definicion": "Exención total o parcial del pago de tributos, dispuesta por ley"}, {"termino": "Fuerza mayor", "definicion": "Cláusula que limita las responsabilidades de los proveedores y transportistas bajo ciertas circunstancias. - G –"}, {"termino": "Garantía de Indemnización", "definicion": "Documento que garantiza al agente o expedidor dela indemnización de cualquier riesgo o reclamación originado por el uso indebido de un B/L Gastos FOB. Gastos de recepción, arrastre y carga de una mercan cía desde que se recibe en el puerto hasta que se carga a bordo"}, {"termino": "GATT (General Agreement on Tariffs and Trade)", "definicion": "Este organismo intergubernamental, al que ha sucedido la Organización Mundial del Comercio (OMC) y que organizaba las negociaciones para la liberalización del comercio mundial, velaba por el sistema comercial multilateral y, en particular, por el principio de no discriminación, que rige las relaciones comerciales de las Partes Contratantes, principio comúnmente denominado \"cláusula de la nación más favorecida\" (NMF)."}, {"termino": "Giro bancario", "definicion": "Cheque extendido por un banco a otro banco pagadero a un tercero."}, {"termino": "Grupaje", "definicion": "Sistema de expedición de diversos paquetes de diferentes consignadores bajo un agente a un destino común. (= Consolidación)"}, {"termino": "Guía Aérea", "definicion": "Documento que acredita en el transporte aéreo de mercancías, la celebración de un contrato, las condiciones de transporte, la recepción de la mercancía por el transportador, su peso, volumen, embalaje, así como el número de bultos."}, {"termino": "Guía Courier", "definicion": "Documento que acredita la consignación de la mercancía que llega o sale por este tipo de despacho, permitiendo a las empresas courier y a los Agentes de Aduana en su caso, la confección y presentación de los documentos de destinación aduanera."}, {"termino": "Guía de Correos", "definicion": "Lista de los efectos postales entregados o recibidos por Empresa de Correos. - H – HAWB. House Air Waybill. Es el AWB emitido por un transit ario en lugar de una compañía aérea regular."}, {"termino": "Hedging", "definicion": "Cobertura. Cubrirse contra la pérdida eventual porespeculación mediante transacciones compensatorias en otras divisas. - I –"}, {"termino": "IATA", "definicion": "Asociación de Transporte Aéreo Internacional."}, {"termino": "IFC", "definicion": "Corporación Financiera Internacional"}, {"termino": "Importación", "definicion": "Introducción legal de mercancía para su uso o consumo en un territorio aduanero."}, {"termino": "Importador", "definicion": "Persona natural o jurídica que realiza o solicita, personalmente o a través de terceros, el trámite de importación."}, {"termino": "Incoterm", "definicion": "Son términos definidos y elaborados por la Cámara Internacional de Comercio (CIC), con la finalidad de establecer un lenguaje estandarizado que pueda ser utilizado por los compradores y vendedores que participan en negocios internacionales. Son reglas internacionales para la interpretación de los términos comerciales fijados por la Cámara de Comercio Internacional. Su objetivo es establecer criterios definidos sobre la distribución de gastos y transmisión de riesgos, entre exportador e importador. Durante la última revisión, en el año 2010 se determinan la existencia de 11 términos: EXW, FAS, FOB, FCA, CFR, CIF, CPT, CIP, DDP, DAT, DAP. Los Incoterms regulan: la entrega de mercancías, la transmisión de riesgos, la distribución de los costes, los trámites de documentos. Pero no regulan: la forma de pago ni la legislación aplicable. Su uso no es obligatorio."}, {"termino": "Iintended Port", "definicion": "Puerto previsto"}, {"termino": "Iintermodal Transporte", "definicion": "Acarreo por varios medios de transporte (aéreo, marítimo, carretera o ferroviario). (= Transporte Multimodal). - J - JETRO. Japan External Trade Organization. Organización Japonesa de Comercio Exterior"}, {"termino": "Joint Venture", "definicion": "(inglés) Asociación temporal de empresas para desarrollar un proyecto; sociedad mixta con riesgo compartido."}, {"termino": "Jurisdicción Aduanera", "definicion": "Porción del territorio aduanero dentro del cual las mercaderías están sujetas a la vigilancia y reglamentación aduanera. Ella comprende, no sólo los puertos u otros lugares donde están situadas las aduanas, sino también el radio de vigilancia costera o terrestre hasta donde se extiende esa jurisdicción. El área o territorio aduanero se confunde generalmente con el territorio político, siendo la jurisdicción aduanera el lugar o recinto concreto donde se cumplen las formalidades de índole arancelaria otro tipo. - L -"}, {"termino": "LASH (Lighter Aboard Ship)", "definicion": "Barcazas Lash"}, {"termino": "LCL (Less Container Load)", "definicion": "Contenedor de Carga menos llena."}, {"termino": "Legalización", "definicion": "Acto por el cual el Director Regional, el Administrador o los funcionarios en quienes éstos deleguen esta facultad, constatan que el respectivo documento ha cumplido todos los trámites legales y reglamentarios, otorgándole su aprobación y verificando además, la conformidad de la garantía rendida, en aquellasdeclaraciones en que sea exigible."}, {"termino": "Letra de cambio", "definicion": "Documento o título valor mediante el cual una persona física o jurídica (librador) ordena a otra (librado) pagar una cantidad a favor de un tercero, a su vencimiento."}, {"termino": "Levante de una Mercancía", "definicion": "La puesta a disposición por parte de la Autoridad Aduanera, de una mercancía a los fines previstos, en el régimen aduanero a que esté sometida."}, {"termino": "Licencia de Exportación", "definicion": "Autorización aduanera que concede permiso bajo requisitos específicos para exportar mercancías."}, {"termino": "Licencia de Importación", "definicion": "Es la autorización oficial que permite la entrada de las mercancías en el país del importador. Si las mercancías no estánsometidas a restricciones aduaneras se expiden automáticamente."}, {"termino": "LIFO (Liner in Free out)", "definicion": "Cláusula contratación flete. La totalidad de las operaciones portuarias son por cuenta de la mercancía, excepto la estiba en destino. El flete sólo cubre el transporte marítimo."}, {"termino": "Lineas de Crédito", "definicion": "Se refiere a los créditos que los bancos ponen a disposición del usuario para determinados fines."}, {"termino": "Liner Terms", "definicion": "Términos de línea. Cuando el buque es de servicio regular."}, {"termino": "Loaded on Board", "definicion": "Indica que la mercancía ha sido cargada a bordo."}, {"termino": "Logística Integrada", "definicion": "Control del flujo de productos desde los insumos hasta el producto final que llega al consumidor, incluyendo los flujos informativos y financieros asociados."}, {"termino": "Lote", "definicion": "Cantidad de un alimento, producto farmacéutico, cosmético o pesticida de uso sanitario y doméstico, producida en condiciones esencialmente iguales."}, {"termino": "Loteo", "definicion": "Es la operación que realiza la Aduana consistente el reconocimiento físico, pesaje, medición, conteo, descripción, valoración y clasificación arancelaria de las mercancías en condiciones de ser subastadas en remate aduanero. - M -"}, {"termino": "Manifiesto", "definicion": "Relación detallada de todo el cargamento de un transporte, que debe ser presentada por el transportista a las autoridades competentes que se la requieran. Este documento contiene detalle de marca, número, especie de mercadería, kilos, cargadores, consignatario o cualquier otra información que pueda ser requerida por la autoridad aduanera o consular en los países de exportación y/o importación."}, {"termino": "Manifiesto de Carga", "definicion": "Documento suscrito por el conductor o por los representantes de la empresa de carga, que contiene la relación completa de los bultos de cualquier clase a bordo del vehículo con exclusión de los efectos postales y de los efectos de tripulantes y pasajeros."}, {"termino": "Manifiesto Courier", "definicion": "Documento que debe contener la individualizaciónde cada una de las Guías Courier que transporta un vehículo o un mensajero internacional, sea por vía aérea o terrestre, mediante el cual las mercancías se presentan y entregan a la Aduana a fin de acceder al sistema de despacho courier."}, {"termino": "Maquila", "definicion": "Empresas internacionales, generalmente fronterizas, que operan por subcontratación por parte de empresas de otro país donde los productos finales son reimportados sin el pago de derechos de aduana."}, {"termino": "Marca", "definicion": "Denominación amplia que puede referirse a un nombre , un término, un símbolo y/o un diseño especial con el que se tratan de identificar los bienes o servicios de un vendedor o grupo de vendedores. Una marca diferencia un producto de sus competidores. Una Marca Registrada es aquella que ha recibido protección legal debido a que, de acuerdo con la ley, se ha convertido en propiedad de quién la registra."}, {"termino": "Mate’s Receipt", "definicion": "Es un documento firmado por el capitán del buque acusando recibo de la mercancía a bordo. En base a este documento, las navieras extienden el B/L. MCCA. Mercado Común Centroamericano . Formado por Costa Rica, El Salvador, Guatemala, Honduras y Nicaragua."}, {"termino": "Materia prima", "definicion": "Materia no transformada, utilizada para la producción de un bien. Los procesos productivos alteran su estructura original ."}, {"termino": "Materia prima alimentaria", "definicion": "Sustancia que para ser utilizada como alimento precisa de algún tratamiento o transformación de naturaleza química, física o biológica."}, {"termino": "Medio de pago internacional", "definicion": "Se emplea en el comercio internacional como consecuencia de operaciones del exterior. Los medios de pago resultan insustituibles en el mercado internacional."}, {"termino": "Mercancía Extranjera", "definicion": "La que proviene del exterior y cuya importación no se ha consumado legalmente, aunque sea de producción o manufacturanacional; o que habiéndose importado bajo condición, ésta deje de cumplirse."}, {"termino": "Mercancía Nacional", "definicion": "Es la producida o manufacturada en el país con materias primas nacionales o nacionalizadas."}, {"termino": "Mercancía Nacionalizada", "definicion": "Es la mercancía extranjera cuya importación se ha consumado legalmente, esto es cuando terminada la tramitación fiscal, queda a la libre disposición de los interesados."}, {"termino": "Mercosur", "definicion": "Mercado común de América del Sur. Agrupación regional formada por Argentina; Brasil, Paraguay y Uruguay. El día 26 de marzo de 1 991, en la ciudad de Asunción del Paraguay se firma el “Tratado de Asunción” para lo Constitución de un Mercado Común entre estos países. Bolivia y Chile son países socios del MERCOSUR. MOMS. IVA en Dinamarca."}, {"termino": "MTD (Multimodal Transport Document)", "definicion": "Son los documentos de transporte multimodal, normalmente emitidos por las líneas navieras de contenedores para cubrir el despacho de mercancías de un lugar de toma de cargo a un lugar de entrega."}, {"termino": "Muellaje", "definicion": "Las tasas pagadas por usar un muelle o servicios de muelle (Derechos de muelle)"}, {"termino": "Muestra comercial", "definicion": "Artículo representativo de una categoría determinada de mercancías ya producidas, o que sea modelo de mercancías cuya fabricación está contemplada. - N –"}, {"termino": "NAFTA", "definicion": "(North American Free Trade Agreement) Acuerdo comercial que abarca Canadá, México y los Estados Unidos, implementado el 1 de enero de 1994, con un período de transición de 15 años. Las mayores previsiones agrícolas incluyen: eliminación de barreras no arancelarias - inmediatamente a la implementación, generalmente a través de la conversión de éstas a aranceles; eliminación de tarifas (aranceles), algunos de manera inmediata, la mayoría dentro de 10 años y algunos otros productos sensibles gradualmente a más de 15 años; previsiones de salvaguardias especiales; y reglas de origen para asegurar que México no sirva como una plataforma para exportaciones de terceros países hacia los Estados Unidos."}, {"termino": "Naladisa", "definicion": "Nomenclatura de la Asociación Latinoamericana de Integración (ALADI), basada en el Sistema Armonizado de Designación y Codificación de Mercancías."}, {"termino": "Nomenclatura arancelaria", "definicion": "Lista o nómina de mercancías, objetos del comercio internacional, ordenadas sistemáticamente a base de determinados principios, su naturaleza, origen, destino, etc. Si frente a cada una de las mercancías de una nomenclatura hacemos figurar los derechos de importación, esta se transforma en un arancel. - 0- OCDE. Organización de Cooperación y Desarrollo Económico."}, {"termino": "OCE (Organización de Cooperación Económica)", "definicion": "Desde 1985. Miembros: Turquía, Irán, Pakistán, Azerbayán, Kazajastán, Uzbekistán, Kirguizistán, Turkmenistán y Tayikistán. OEA Organización de Estados Americanos. Desde 1948. Agrupa a los 34 estados americanos independientes, con excepción de Cuba."}, {"termino": "OMC", "definicion": "Organización Mundial de Comercio."}, {"termino": "Orden de pago", "definicion": "Instrumento de pago por el cual el comprador internacional transfiere al vendedor por intermedio de un banco, los fondos necesarios para el pago de la exportación."}, {"termino": "Ordenante", "definicion": "Persona o entidad que solicita la apertura del crédito a su Banco comprometiéndose a efectuar el pago. Es el importador . Organización Internacional de Normalización. En inglés International Organization for"}, {"termino": "Standarization - ISO", "definicion": "Organización internacional especializada en normalización, que agrupa a un conjunto muy importante de centros nacionales de normalización de distintos países. El objeto de la I.S.O., según su Constitución, es el favorecer el desarrollo de la normalización en el mundo con miras a facilitar los intercambios de mercancías y las prestaciones de servicios entre las naciones, y de desarrollar la cooperación en los dominios intelectual, científicos, técnicos y económicos. Esta organización fue instituida en 1946, su sede está en Ginebra, Suiza. OTM. Operador de Transporte Multimodal."}, {"termino": "Outright Forward", "definicion": "Futuros a plazo. Todas las transacciones de compra /venta de divisas, con valoración superior a 2 días hábiles."}, {"termino": "Outsiders", "definicion": "(en inglés) Buques que no pertenecen a una Conferencia Marítima . - P - PA (Pallet Allowance). Rebaja en la contratación del flete por mercancía p aletizada."}, {"termino": "Packing credit", "definicion": "Crédito documentario en el cual el banco emisor autoriza al banco corresponsal a efectuar, por su cuenta, orden y riesgo, un anticipo a cuenta de la negociación definitiva del crédito, con sujeción a determinada condición."}, {"termino": "Packing List", "definicion": "(inglés) Es una lista en que se especifica el contenido de cada bulto de una operación de exportación."}, {"termino": "País de Origen", "definicion": "Por tal se entiende, si se trata de productos naturales, allí donde son producidos, y si de manufacturas, el lugar donde se ha efectuado la transformación para darles la condición con que son introducidas en el país importador."}, {"termino": "País de procedencia", "definicion": "Se entiende el país del cual llega directamente la mercadería, sin considerar si fue producida o manufacturada en él."}, {"termino": "Pallet", "definicion": "Plataforma constituida por dos pisos unidos por largueros. Medidas: Universal= 1200 x 1000 mm. Europalet=1200 x 800 mm. Altura máxima= aprox. 1,70 m."}, {"termino": "Perímetro Fronterizo de Vigilancia Especial", "definicion": "Parte de la zona secundaria en la cual se establecen prohibiciones y restricciones especiales para las existencias y tráfico de mercancías. PIB. Producto Interior Bruto Plafond. Límite Máximo Arancelario Es una combinación de contingente cuantitativo y arancelario. Se establece un tiempo determinado para la suspensión o prohibición de importaciones o exportaciones. PNB (= Producto Nacional Bruto). Comprende la suma del total de la inversión privad a y pública y del consumo público y privado que se ha realizado en un país durante un año."}, {"termino": "Póliza de Seguro", "definicion": "Documento en que constan las condiciones estipuladas entre asegurador y asegurado con respecto al contrato de seguro. Las primas aplicables se calculan en función del tiempo de vigencia de los contratos, del valor asegurado y las de los riesgos propios de la carga y de los riesgos corridos durante su manipuleo y transporte."}, {"termino": "Posición Arancelaria", "definicion": "Permite incorporar la posición arancelaria del producto o servicio. Utiliza el sistema internacional de 6 cifras. El código internacional de 6 dígitos en distintos países se agrega entre 4 y 6 adicionales para una mejor especificación del producto o servicio. PNB (= Producto Nacional Bruto). Comprende la suma del total de la inversión privada y pública y del consumo público y privado que se ha realizado en un país durante un año."}, {"termino": "PostPanamax", "definicion": "Buques que no pueden pasar el Canal de Panamá."}, {"termino": "Potestad Aduanera", "definicion": "Conjunto de atribuciones que tiene el Servicio para controlar el ingreso y salida de mercancías hacia y desde el territorio nacional y para hacer cumplir las disposiciones legales y reglamentarias que regulan las actuaciones aduaneras. Quedan también sujetas a la potestad aduanera las personas que pasen por las fronteras, puertos y aeropuertos, y la importación y exportación de servicios respecto de los cuales la ley disponga la intervención de la Aduana."}, {"termino": "Precinto", "definicion": "Hilo, bramante, banda o artículos similares, destinados a ser utilizados en combinación con un sello."}, {"termino": "Precios de Referencia", "definicion": "Fijación por parte de la autoridad gubernamental de un precio a un producto con el objeto de aplicar un arancel."}, {"termino": "Preentrada", "definicion": "El proceso de presentación de documentos en la aduana antes de la expedición o llegada de la mercancía."}, {"termino": "Premium", "definicion": "Prima. Es la cantidad que cobra el emisor de una opción y que le compensa el riesgo de cambio que asume."}, {"termino": "Prima al Comisionista", "definicion": "La garantía del agente ante el principal de la solvencia de las partes a las que efectúa ventas. Se incluye en los acuerdos de agencia."}, {"termino": "Protesta de Mar", "definicion": "Puede ser por averías, naufragio, abordaje o incumplimiento de la presentación de la carga."}, {"termino": "Puerto Franco", "definicion": "Es un territorio que goza de exenciones y bonificaciones de derechos aduaneros. Se pueden cargar y descargar mercancías."}, {"termino": "Puerto Libre", "definicion": "Concesión hecha un Estado para disponer de un puerto en otro país como si fuese propio, es decir, embarcar u desembarcar mercancía y transportarla, sin interferencia o derechos aduaneros."}, {"termino": "PVD", "definicion": "Países en Vías de Desarrollo."}, {"termino": "PVD-ALA", "definicion": "Países en Vía de Desarrollo de Asia y América Latina. - R -"}, {"termino": "Rancho", "definicion": "Los combustibles, lubricantes, aparejos y demás mercancías, incluyendo las provisiones destinadas al consumo de pasajeros y tripulantes que requieren las naves, aeronaves y vehículos destinados al transporte internacional y en estado de viajar para su propio mantenimiento, conservación y perfeccionamiento."}, {"termino": "Reconocimiento", "definicion": "Operación por medio de la cual el despachador con mandato para despachar o el interesado, revisa o inspecciona las mercancías en los recintos de depósito aduanero antes de someterlas a una destinación aduanera. Como consecuencia de este reconocimiento se pueden realizar las operaciones materiales de reembalaje y división, como asimismo la extracción de muestras."}, {"termino": "Redestinación", "definicion": "Envío de mercancías extranjeras desde una Aduana a otra del país, para los fines de su importación inmediata o para la continuación de su almacenamiento."}, {"termino": "Reexpedición", "definicion": "Envío de mercancías extranjeras desde una zona franca a otra, al extranjero, a depósitos francos o a una zona primaria."}, {"termino": "Reexportación", "definicion": "Retorno al exterior de mercancías traídas al país y no nacionalizadas."}, {"termino": "Reexportación", "definicion": "Cuando una mercadería proveniente del exterior se despacha a plaza a un país, para luego volverla a embarcar con cualquier destino. Se dice que esa mercadería ha sido “reexportada”, porque ha sufrido dos exportaciones: Desde su país de origen hacia el territorio de tal o cual país y desde ahí hacia un tercero después."}, {"termino": "Régimen Aduanero", "definicion": "Tratamiento aplicable a todas las mercaderías sujetas al control de la aduana, respecto de las leyes y reglamentos aduaneros y de conformidad a su naturaleza y al objetivo de cada operación."}, {"termino": "Régimen de Libertad Comercial Total", "definicion": "Dentro de este régimen se realizan la mayoría dela s operaciones con el exterior. No se necesita ningún requisito previo a la exportación o importación."}, {"termino": "Reimportación", "definicion": "Respecto de mercaderías que se exportaron, cuando vuelven, por cualquier causa, al país de donde son originarias, o con respecto a mercaderías extranjeras introducidas al país, si son exportadas para volver a importárselas nuevamente por cualquier motivo más tarde."}, {"termino": "Reintegro", "definicion": "Es el régimen por el cual se restituyen total o parcialmente, los importes que se hubieran pagado en concepto de tributos interiorespor la mercaderia o servicio que se exporta definitivamente."}, {"termino": "Restricciones o prohibiciones aduaneras", "definicion": "A las franquicias aduaneras se les suele oponer numerosos procedimientos de restricciones del comercio de importación y exportación; estas prohibiciones pueden ser generales, limitadas, permanentes o temporales, se explican por diversas finalidades: fiscales, protección industrial o comercial, protección de la salud pública, defensa de la propiedad intelectual o artística, etc."}, {"termino": "Retorsión", "definicion": "Hay retorsión cuando un Estado aplica a otro Estado la misma restricción o prohibición que éste, en uso de un derecho, ha aplicado en detrimento de los intereses de aquél. Revolving (ROTATIVO). Un CD revolving es aquél utilizable por un importe que permanece constante por un período especificado de tiempo. De esta forma cuando es utilizado resulta disponible por la totalidad del importe, ya sea de forma automática o tan pronto como se recibe aviso del emisor de haber recibido conformes los documentos de la utilización precedente."}, {"termino": "Roll on Roll off", "definicion": "Buques para transporte de carga rodada."}, {"termino": "Ronda Uruguay", "definicion": "La última de las grandes negociaciones celebrada bajo los auspicios del GATT con el fin de liberalizar el comercio mundial de bienes y de servicios. Se inició en Punta del Este (Uruguay) en 1986 y se concluyó en Marraquech en 19 95. Fue mucho más ambiciosa que sus antecesoras (Ronde Dillon, Ronda Kennedy, Ronda Tokio), puesto que superó con creces el objetivo tradicional y primordial del desmantelamiento arancelario y procuró, por otra parte, una mayor integración de los países en desarrollo en el sistema comercial multilateral dió nacimiento a la OMC."}, {"termino": "Ruptura de Carga (Breaking Bull)", "definicion": "Es la descomposición total o parc ial del container en sus elementos para proceder a su almacenaje o transporte al receptor de la carga. - S - SAARC Asociación de Asia del Sur para Cooperación Regiona l. Desde 1983 entre Bangla Desh, Bhután, India, Maldivas, Nepal, Pakistán y Sri Lanka. SACU. Unión Aduanera del Africa Austral. Desde 1979, sede en Pretoria (Rep. Sudafricana),"}, {"termino": "Miembros", "definicion": "Botswana, Lesotho, Rep. Sudafricana y Sw azilandia. SADC. Comunidad de Desarrollo de Africa Meridional. Desde 1980, sede en Gaborone (Botswana), Miembros : Angola, Botswana, Lesotho, Malawi, Mozambique, Swazilandia, Tanzania, Zambia y Zimbabwe."}, {"termino": "Salida temporal/ Exportación temporal", "definicion": "Régimen suspensivo de derechos, al amparo del cual determinadas mercancías, nacionales o nacionalizadas, pueden salir temporalmente del país sin incurrir en las obligaciones que causaría su exportación, siempre que sean perfectamente individualizables e identificables, y que los interesados se comprometan a retornarlas dentro de los plazos reglamentarios."}, {"termino": "Salvaguardas", "definicion": "Medidas excepcionales de protección que utiliza un país para proteger temporalmente a determinadas industrias nacionales que se encuentran dañadas o que se enfrentan a una amenaza de daño grave, debido a unincremento significativo de las mercancías que fluyen al mercado interno en condiciones de competencia leal. SDT. Declaración de cargadores para el transporte de me rcancías peligrosas."}, {"termino": "Sello", "definicion": "Pieza de metal o de otro material adecuado que sirve para unir los dos extremos de un precinto, que ofrecen seguridad de que cualquier violación pueda ser detectada. Short Form BL (Blank Back). Se trata de un documento que no incluye todas las c ondiciones del contrato de transporte marítimo en el reverso del documento. Siempre ha de ser aceptado, a no ser que un crédito documentario especifique que no se acepta este tipo de BL."}, {"termino": "Sistema armonizado", "definicion": "Sistema armonizado de designación y clasificación de las mercancías. Nueva nomenclatura universal de las mercancías adoptada por el Consejo de Cooperación Aduanera y aplicada por la mayoría de los países del mundo."}, {"termino": "Sistema de franjas de precios", "definicion": "Es un mecanismo de estabilización de los precios internos a través de la fijación de un precio de referencia (piso) y un precio de referencia (techo) entre los cuales se desea mantener el costo de importación de un determinado producto. La estabilización se logra aumentando el arancel ad-valorem (general) cuando el precio internacional cae por debajo del nivel piso, y rebajando dicho arancel, hasta cero, cuando dicho precio aumenta por encima del techo. SME. Sistema Monetario Europeo. SMI. Sistema Monetario Internacional."}, {"termino": "Sobrestadía", "definicion": "El dinero pagado por el exportador por los retrasos en la carga, descarga o por ocupar espacio en un puerto o almacén más allá de un plazo especificado. SPG. Sistema de Preferencias Generalizadas. SPOT. Contado. Es el cambio de compra venta de unamoned a respecto a otra (generalmente USD)."}, {"termino": "Spread", "definicion": "Diferencial. Diferencia entre tasa de interés tomadora y prestadora."}, {"termino": "Strike Price", "definicion": "Precio de Ejercicio. Es el tipo de cambio prefijado en una opción en divisas."}, {"termino": "Swap", "definicion": "Transacción de cambios en divisas que consiste en una compra \"spot\", contra una venta a plazo o viceversa."}, {"termino": "SWIFT", "definicion": "Society for Worldwide Interbank Financial Telecomunication. Mensajes de intercambio electrónico de datos entre bancos. - T –"}, {"termino": "Tasa", "definicion": "Derecho que percibe el Estado como persona soberana , por servicios o prestaciones especiales o individualizables, de carácter jurídico-administrativo, organizados con fines colectivos y que les paga el usuario a su solicitud . (Tasa de Estadísticas, Tasa de Comprobación, Tasa de Almacenaje, Tasa de Servicios Extraordinarios, etc.)."}, {"termino": "Taken in Charge", "definicion": "Indica que la mercancía ha sido tomada para carga."}, {"termino": "TEEM", "definicion": "Trans Europe Express Merchandise."}, {"termino": "Through B/L", "definicion": "Si el transporte marítimo lo efectúa más de un transportista uno de los documentos que podrá cubrir la totalidad de la expedición en el Through BL"}, {"termino": "Tipo de cambio", "definicion": "El precio de una divisa con relación a otra."}, {"termino": "TIR", "definicion": "Convention Douanière au Transport International de Merchandises par Route."}, {"termino": "TLC / NAFTA", "definicion": "Tratado de Libre Comercio. Desde 1-1-1994 entre EEUU, México y Canadá."}, {"termino": "TLO (Total Loss Only)", "definicion": "El asegurador paga si el cargamento queda tan dañado que resulta antieconómica su recuperación."}, {"termino": "TLVO (Total Loss of Vessel Only)", "definicion": "Pérdida Total Efectiva. El asegurador paga el cargamento solamente si el buque queda destruido. Es la mínima garantía."}, {"termino": "To The Bearer", "definicion": "AL PORTADOR Tonelada Corta. Short Ton = 2000 libras = 907,18 Kg. Tonelada Larga. Long Ton = 2240 libras = 1016,16 Kg. Tonelada Métrica. Metric Ton = 2204 libras =1000 Kg."}, {"termino": "Tonelaje de Peso Muerto", "definicion": "Incluye el peso de la carga y de los consumibles de un buque."}, {"termino": "Tramp", "definicion": "(inglés) Barco que atraca en un puerto cualquiera donde espera recoger carga (lo contrario de barco de línea regular)."}, {"termino": "Transbordo", "definicion": "Traslado directo o indirecto de mercancías, de un vehículo a otro, o al mismo en diverso viaje, incluso su descarga a tierra con el mismo fin de continuar a su destino, y aunque transcurra cierto plazo entre su llegada y su salida."}, {"termino": "Tránsito", "definicion": "Paso de mercancías extranjeras a través del país cuando éste forma parte de un trayecto total comenzado en el extranjero y que debe ser terminado fuera de sus fronteras. Igualmente se considerará como tránsito el envío de mercancías extranjeras al exterior que se hubieren descargado por error u otras causas calificadas en las zonas primarias o lugares habilitados, con la condición de que no hayan salido de dichos recintos y que su llegada al país y su posterior envío al exterior se efectúe por vía marítima o aérea."}, {"termino": "Transporte multimodal internacional", "definicion": "Porte de mercancía por dos o más modos diferentes de transportes (camión, vagón, buque, aéreo), en virtud de un contrato de transporte multimodal, plurimodal o combinado, desde un lugar situado en un país en que el operador del transporte multimodal toma las mercancías, bajo su responsabilidad y custodia, para entregarla posteriormente en otro lugar situado en un país diferente. Las características esenciales de este sistema que lo distingue del transporte segmentado tradicional son, en primer lugar, que se trata de un sistema basado en un “contrato único” y, el segundo lugar, que el operador del transporte multimodal que asume la responsabilidad del cumplimiento del contrato, actual como “principal”, y no como agente del usuario o expedidor, o de los porteadores que integra los diferentes modos de transportes. Este principio se basa en el servicio de transporte de la mercadería de “puerta a puerta” reduciendo notablemente la documentación y el cumplimiento de otras formalidades como son de prácticas en el transporte tradicional."}, {"termino": "Transbordo", "definicion": "Transferencia de la carga de un vehículo a otro, pertenezca o no a un mismo modo de transporte (vía férrea, ruta, vía de agua, oleoductos, etc.). Se distinguen los transbordos hechos bajo el régimen de contrato de transporte o fuera de ese régimen. TVA. IVA de Francia - U –"}, {"termino": "UDEAC", "definicion": "Unión Aduanera y Económica de Africa Central. Desde 1964. Sede en Bangui (Rep. Centroafricana). Miembros: Camerún, Congo, Gabón, G uinea Ecuatorial, Rep. Centroafricana y Chad. Desde 1994 se crea la: CEMAC Comunidad Económ ica y Monetaria de Africa Central,cuyo Banco Central es el BEAC (Banco de los Estados del Africa Central). Zona del Franco CFA. UEMOA Unión Económica y Monetaria del Africa Occidental. Sustituye desde 1994 a la UMOA Unión Monetaria del Africa Occidental. Miembros: Be nin, Burkina Faso, Costa de Marfil, Malí, Níger y Senegal. Su banco central es el BCEAO (Banco Central de los Estados de Africa Occidental). Zona del Franco CFA."}, {"termino": "UMA (Unión del Magreb Árabe)", "definicion": "Desde 1989. Miembros: Argelia, Libia, Marruecos y Túnez. En graves problemas debido a la situación de Argelia. UN: Naciones Unidas. UNCTAD: Conferencia sobre Comercio y Desarrollo de Naciones Unidas."}, {"termino": "Unión Aduanera", "definicion": "Es una forma de integración económica en la que setransforman dos o más territorios aduaneros en uno solo, dentro del cual los aranceles u otras restricciones al comercio son eliminados; se aplican, en general, idénticos aranceles y regulaciones al comercio con terceros países."}, {"termino": "Unión Europea", "definicion": "Constituida por el Tratado de la Unión Europea (TUE ), entró en vigor el 01/11/93. Forman parte de la Unión 15 países: Alemania, Austria, Bélgica, Dinamarca, España, Finlandia, Francia, Grecia, Irlanda, Italia, Luxemburgo, Países Bajos, Portugal, Reino Unido y Suecia."}, {"termino": "URU", "definicion": "Usos y Reglas Uniformes de la Cámara de Comercio Internacional. - V -"}, {"termino": "Valor Aduanero", "definicion": "Es el valor de transacción, es decir, el precio realmente pagado o por pagar de las mercancías cuando éstas se venden para su exportación al país de importación, ajustado cuando corresponda."}, {"termino": "Valor en Aduana", "definicion": "Para calcular los derechos Aduaneros que hay que aplicar, la Aduana define el concepto de Valor en Aduana, que es el de la mercancía más todos los gastos (seguro, transporte, etc.) que se hayan producido hasta el momento de pasar la aduana. Sobre este valor en aduana, se aplicará el tipo de arancel a que esté sometida la mercancía. El arancel a aplicar depende de la mercancía y el país de origen . Al resultado de aplicar el arancel al valor en aduana, se aplica el IVA correspondiente. Este valor es el Valor de la Mercancía."}, {"termino": "Ventanilla Única de Comercio Exterior", "definicion": "Sistema que permite a los agentes de comercio exterior proporcionar en forma electrónica, información a un solo organismo público, para cumplir con todas las autorizaciones o exigencias que se requieren para la tramitación de las destinaciones aduaneras, de acuerdo a las normas legales y reglamentarias. - W –"}, {"termino": "Warehouse to Warehouse Clause", "definicion": "(inglés) Cláusula del seguro prevista en el Institute Cargo Clauses, por la que los aseguradores cubren la mercancía a partir del momento en que sale del almacén en el lugar indicado en la póliza para el comienzo del transporte hasta el almacén de destino. Almacén a almacén."}, {"termino": "Warrant", "definicion": "Palabra de origen inglés cuyo significado es “garantía”. En materia comercial se entiende por “warrant” un certificado de depósito emitido por los administradores del almacén o depósito, ya sean fiscales o privados, en el cual se detallan los artículos o mercancías de cualquier género que está depositados en ellos, pudiendo ser trasmitido y con él la propiedad de los efectos, de uno a otro comerciante, conforme a los recaudos que fija cada legislación sobre el particular. - Z –"}, {"termino": "Zona de libre comercio", "definicion": "Forma de integración económica que elimina todas las barreras arancelarias al comercio de bienes entre los países miembros."}, {"termino": "Zona Franca", "definicion": "Áreas del territorio nacional extra-aduaneras, previamente calificadas, sujetas a un régimen especial, donde podrán establecerse y funcionar empresas, nacionales o extranjeras, que se dediquen a la producción o comercialización de bienes para la exportación, directa o indirecta, así como a la prestación de servicios vinculados al comercio internacional y a las actividades conexas o complementarias a ellas ."}, {"termino": "Zona Franca de Extensión", "definicion": "Ciudad o región situada adyacente a la Zona Francadelimitada por el Presidente de la República en uso de sus facultades."}, {"termino": "Zona Primaria", "definicion": "Espacio de mar o tierra en el cual se efectúan las operaciones materiales, marítimas y terrestres de la movilización de las mercancías el que para los efectos de su jurisdicción es recinto aduanero y en cual han de cargarse, descargarse, recibirse o revisarse las mercancías, para su introducción o salida del territorio nacional."}]};
+const VERSION = "1.0";
+
+// ============================================================ Utilidades
+const $ = (id) => document.getElementById(id);
+const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+const DOMINIO_CENTRO = "politecnics.barcelona";
+const REGEX_CORREO = /[\w.+-]+@[\w-]+\.[\w.-]+/g;
+const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+const sinAcentos = (t) => String(t ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "");
+const hoyISO = () => fechaISO(new Date());
+function fechaISO(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
+function minutos(hhmm) { const [h, m] = hhmm.split(":").map(Number); return h * 60 + m; }
+function dormir(ms) { return new Promise((r) => setTimeout(r, ms)); }
+function registrar(texto) {
+  try {
+    const l = JSON.parse(localStorage.getItem("ch_log") || "[]");
+    l.push(`${new Date().toLocaleString("es-ES")} — ${texto}`);
+    localStorage.setItem("ch_log", JSON.stringify(l.slice(-200)));
+  } catch (e) { /* sin sitio */ }
+  console.log("[Classroom Help]", texto);
+}
+
+// Ajustes (localStorage) ----------------------------------------------------
+const AJUSTES_DEFECTO = { clientId: "", claveIA: "", proveedor: "gemini", ahorro: true, traducir: true, modelo: "" };
+function leerAjustes() { try { return { ...AJUSTES_DEFECTO, ...JSON.parse(localStorage.getItem("ch_ajustes") || "{}") }; } catch (e) { return { ...AJUSTES_DEFECTO }; } }
+function guardarAjustes(a) { localStorage.setItem("ch_ajustes", JSON.stringify(a)); }
+let ajustes = leerAjustes();
+
+// Almacén grande (IndexedDB): textos de archivos y traducciones ------------
+const BD = (() => {
+  let db;
+  function abrir() {
+    if (db) return Promise.resolve(db);
+    return new Promise((res, rej) => {
+      const r = indexedDB.open("classroomhelp", 1);
+      r.onupgradeneeded = () => r.result.createObjectStore("kv");
+      r.onsuccess = () => { db = r.result; res(db); };
+      r.onerror = () => rej(r.error);
+    });
+  }
+  async function get(k) { const d = await abrir(); return new Promise((res) => { const q = d.transaction("kv").objectStore("kv").get(k); q.onsuccess = () => res(q.result); q.onerror = () => res(undefined); }); }
+  async function set(k, v) { const d = await abrir(); return new Promise((res) => { const q = d.transaction("kv", "readwrite").objectStore("kv").put(v, k); q.onsuccess = () => res(true); q.onerror = () => res(false); }); }
+  async function claves(prefijo) { const d = await abrir(); return new Promise((res) => { const q = d.transaction("kv").objectStore("kv").getAllKeys(); q.onsuccess = () => res(q.result.filter((k) => String(k).startsWith(prefijo))); q.onerror = () => res([]); }); }
+  async function todos(prefijo) { const ks = await claves(prefijo); const out = {}; for (const k of ks) out[k] = await get(k); return out; }
+  return { get, set, claves, todos };
+})();
+
+// Estado ---------------------------------------------------------------------
+const estado = {
+  demo: false, token: null, cuenta: "",
+  tareas: [], materialesClase: [], profesores: [],
+  seleccionada: null, asignatura: "", verEntregadas: false,
+  traducciones: {}, traduciendo: false, resumenTrad: "",
+  adjuntos: {}, leyendo: false,
+  historial: [], iaOcupada: false,
+  eventos: [], calAnio: 0, calMes: 0,
+  avisos: [],
+};
+
+// ============================================================ Cabecera
+function tic() {
+  const a = new Date();
+  $("cab-fecha").textContent = `${DIAS[(a.getDay() + 6) % 7]}, ${a.getDate()} de ${MESES[a.getMonth()]}  ·`;
+  $("cab-reloj").textContent = a.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+setInterval(tic, 1000); tic();
+
+function mostrarEstado() {
+  const vis = tareasVisibles();
+  const pend = vis.filter((t) => !t.entregada).length;
+  const pronto = vis.filter((t) => t.etiqueta === "pronto").length;
+  const venc = vis.filter((t) => t.etiqueta === "vencida").length;
+  const avisos = [];
+  if (estado.tareas.length) avisos.push([`${pend} pendientes`, pend ? "ok" : "info"]);
+  if (pronto) avisos.push([`${pronto} para pronto`, "aviso"]);
+  if (venc) avisos.push([`${venc} vencidas`, "error"]);
+  if (estado.traduciendo) avisos.push(["Traduciendo…", "trabajando"]);
+  if (estado.leyendo) avisos.push(["Leyendo archivos…", "trabajando"]);
+  if (estado.demo) avisos.push(["Demostración", "aviso"]);
+  else if (ajustes.ahorro && estado.tareas.length) avisos.push(["Modo ahorro de IA", "info"]);
+  for (const [t, tipo] of estado.avisos) avisos.push([t, tipo]);
+  $("chips").innerHTML = avisos.map(([t, tipo]) => `<span class="chip ${tipo}">${esc(t)}</span>`).join("");
+}
+
+// ============================================================ Navegación
+function irA(panel) {
+  document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("activo", b.dataset.panel === panel));
+  const movil = window.innerWidth < 1000;
+  if (panel === "asistente") {
+    $("col-asistente").classList.add("movil");
+    $("col-principal").classList.add("oculto-movil");
+  } else {
+    $("col-asistente").classList.remove("movil");
+    $("col-principal").classList.remove("oculto-movil");
+    document.querySelectorAll("#col-principal .panel").forEach((p) => p.classList.toggle("activo", p.id === "panel-" + panel));
+    if (panel === "calendario") dibujarCalendario();
+    if (panel === "resumenes") dibujarResumenes();
+    if (panel === "horario") dibujarSemana();
+  }
+  $("hoy").style.display = (panel === "tareas" || panel === "horario") && (estado.tareas.length || estado.demo) ? "" : "none";
+  if (!movil) $("panel-asistente").classList.add("activo");
+}
+document.querySelectorAll("nav button").forEach((b) => b.addEventListener("click", () => irA(b.dataset.panel)));
+
+// ============================================================ Diálogos
+function dialogo(html, botones) {
+  return new Promise((resolver) => {
+    const velo = document.createElement("div");
+    velo.className = "velo";
+    velo.innerHTML = `<div class="dialogo">${html}<div class="botones">${botones.map((b, i) => `<button class="boton ${b.sec ? "sec" : ""}" data-i="${i}">${esc(b.texto)}</button>`).join("")}</div></div>`;
+    $("dialogos").appendChild(velo);
+    velo.querySelectorAll(".botones button").forEach((btn) => btn.addEventListener("click", () => {
+      const b = botones[+btn.dataset.i];
+      const valores = {};
+      velo.querySelectorAll("[data-campo]").forEach((c) => { valores[c.dataset.campo] = c.type === "checkbox" ? c.checked : c.value; });
+      velo.remove();
+      resolver({ boton: b.valor ?? b.texto, valores });
+    }));
+    velo.addEventListener("click", (e) => { if (e.target === velo && botones.some((b) => b.sec)) { velo.remove(); resolver({ boton: null, valores: {} }); } });
+  });
+}
+const aviso = (texto, titulo = "Classroom Help") => dialogo(`<h3>${esc(titulo)}</h3><p>${esc(texto)}</p>`, [{ texto: "Vale" }]);
+const confirmar = async (texto, titulo = "Classroom Help") => (await dialogo(`<h3>${esc(titulo)}</h3><p>${esc(texto)}</p>`, [{ texto: "Cancelar", sec: true, valor: false }, { texto: "Sí", valor: true }])).boton === true;
+
+// ============================================================ Ajustes
+async function abrirAjustes() {
+  const r = await dialogo(`
+    <h3>Ajustes</h3>
+    <div class="campo"><label>ID de cliente de Google (OAuth «Aplicación web»)</label><input type="text" data-campo="clientId" value="${esc(ajustes.clientId)}" placeholder="123456789-xxxx.apps.googleusercontent.com"></div>
+    <div class="campo"><label>Clave de Gemini (la misma que en el PC)</label><input type="password" data-campo="claveIA" value="${esc(ajustes.claveIA)}"></div>
+    <div class="campo"><label class="check"><input type="checkbox" data-campo="ahorro" ${ajustes.ahorro ? "checked" : ""}> Modo ahorro de IA (solo lee los archivos de la tarea elegida)</label></div>
+    <div class="campo"><label class="check"><input type="checkbox" data-campo="traducir" ${ajustes.traducir ? "checked" : ""}> Traducir al castellano (el inglés se mantiene)</label></div>
+    <p class="info">Classroom Help para tablet ${VERSION}. Los datos se guardan solo en este dispositivo.</p>
+    <p class="info"><a href="#" id="lnk-ayuda">¿Cómo consigo el ID de cliente?</a> · <a href="#" id="lnk-log">Ver registro de errores</a> · <a href="#" id="lnk-salir">Cerrar sesión</a></p>`,
+    [{ texto: "Cancelar", sec: true }, { texto: "Guardar" }]);
+  if (r.boton === "Guardar") {
+    ajustes = { ...ajustes, clientId: r.valores.clientId.trim(), claveIA: r.valores.claveIA.trim(), ahorro: !!r.valores.ahorro, traducir: !!r.valores.traducir };
+    guardarAjustes(ajustes);
+    $("chk-ahorro").checked = ajustes.ahorro; $("chk-traducir").checked = ajustes.traducir;
+    mostrarTareas(); mostrarEstado();
+  }
+}
+document.addEventListener("click", async (e) => {
+  if (e.target.id === "lnk-ayuda") { e.preventDefault(); mostrarAyudaClientId(); }
+  if (e.target.id === "lnk-log") { e.preventDefault(); aviso((JSON.parse(localStorage.getItem("ch_log") || "[]").slice(-30).join("\n\n")) || "Sin errores registrados.", "Registro"); }
+  if (e.target.id === "lnk-salir") { e.preventDefault(); sessionStorage.removeItem("ch_token"); location.reload(); }
+});
+function mostrarAyudaClientId() {
+  dialogo(`<h3>Conseguir el ID de cliente (solo una vez)</h3>
+    <div class="paso">1. Entra en <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">console.cloud.google.com/apis/credentials</a> con la cuenta con la que creaste el proyecto <b>classroomhelp</b> (la de credentials.json).</div>
+    <div class="paso">2. Pulsa <b>Crear credenciales → ID de cliente de OAuth</b>. Tipo: <b>Aplicación web</b>. Nombre: «Classroom Help tablet».</div>
+    <div class="paso">3. En <b>Orígenes de JavaScript autorizados</b> añade la dirección donde tienes abierta esta app (lo que sale en la barra de Chrome hasta la primera barra, por ejemplo <code>${esc(location.origin)}</code>).</div>
+    <div class="paso">4. Guarda, copia el <b>ID de cliente</b> (termina en <code>.apps.googleusercontent.com</code>) y pégalo en Ajustes.</div>
+    <div class="paso">5. La clave de Gemini es la misma que usas en el PC (está en config.json).</div>`, [{ texto: "Entendido" }]);
+}
+$("btn-ajustes").addEventListener("click", abrirAjustes);
+$("chk-ahorro").addEventListener("change", (e) => { ajustes.ahorro = e.target.checked; guardarAjustes(ajustes); mostrarEstado(); });
+$("chk-traducir").addEventListener("change", (e) => { ajustes.traducir = e.target.checked; guardarAjustes(ajustes); mostrarTareas(); dibujarHoy(); dibujarSemana(); });
+$("chk-entregadas").addEventListener("change", (e) => { estado.verEntregadas = e.target.checked; mostrarTareas(); });
+$("sel-asignatura").addEventListener("change", (e) => { estado.asignatura = e.target.value; mostrarTareas(); });
+$("btn-actualizar").addEventListener("click", () => cargar());
+
+// ---------- js2_google.js
+// ============================================================ Google: sesión y Classroom
+const SCOPES = [
+  "https://www.googleapis.com/auth/classroom.courses.readonly",
+  "https://www.googleapis.com/auth/classroom.coursework.me",
+  "https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly",
+  "https://www.googleapis.com/auth/classroom.rosters.readonly",
+  "https://www.googleapis.com/auth/classroom.profile.emails",
+  "https://www.googleapis.com/auth/drive.readonly",
+].join(" ");
+let clienteToken = null;
+
+function tokenGuardado() {
+  try {
+    const t = JSON.parse(sessionStorage.getItem("ch_token") || "null");
+    if (t && t.caduca > Date.now() + 60000) return t.token;
+  } catch (e) { /* nada */ }
+  return null;
+}
+
+function pedirToken(silencioso) {
+  return new Promise((resolver, rechazar) => {
+    if (!window.google || !google.accounts) { rechazar(new Error("No se ha podido cargar el inicio de sesión de Google. ¿Hay internet?")); return; }
+    if (!ajustes.clientId) { rechazar(new Error("Falta el ID de cliente de Google. Ponlo en Ajustes (⚙)")); return; }
+    clienteToken = google.accounts.oauth2.initTokenClient({
+      client_id: ajustes.clientId, scope: SCOPES,
+      callback: (resp) => {
+        if (resp.error) { rechazar(new Error(resp.error_description || resp.error)); return; }
+        estado.token = resp.access_token;
+        sessionStorage.setItem("ch_token", JSON.stringify({ token: resp.access_token, caduca: Date.now() + (resp.expires_in - 60) * 1000 }));
+        resolver(resp.access_token);
+      },
+      error_callback: (err) => rechazar(new Error(err.message || err.type || "No se pudo iniciar sesión")),
+    });
+    clienteToken.requestAccessToken({ prompt: silencioso ? "" : "consent" });
+  });
+}
+
+async function conToken() {
+  if (estado.token) return estado.token;
+  const t = tokenGuardado();
+  if (t) { estado.token = t; return t; }
+  return pedirToken(false);
+}
+
+async function llamarGoogle(url, opciones = {}) {
+  let token = await conToken();
+  let r = await fetch(url, { ...opciones, headers: { ...(opciones.headers || {}), Authorization: "Bearer " + token } });
+  if (r.status === 401) {  // caducado: se pide otro sin molestar
+    estado.token = null; sessionStorage.removeItem("ch_token");
+    token = await pedirToken(true);
+    r = await fetch(url, { ...opciones, headers: { ...(opciones.headers || {}), Authorization: "Bearer " + token } });
+  }
+  if (!r.ok) {
+    const texto = await r.text();
+    const err = new Error(`Google ha respondido ${r.status}: ${texto.slice(0, 300)}`);
+    err.status = r.status; err.cuerpo = texto;
+    throw err;
+  }
+  return opciones.crudo ? r : r.json();
+}
+
+async function todasLasPaginas(base, clave, params = {}) {
+  const resultado = [];
+  let token = null;
+  do {
+    const q = new URLSearchParams({ ...params, pageSize: "100", ...(token ? { pageToken: token } : {}) });
+    const datos = await llamarGoogle(`${base}?${q}`);
+    resultado.push(...(datos[clave] || []));
+    token = datos.nextPageToken;
+  } while (token);
+  return resultado;
+}
+
+const CLASSROOM = "https://classroom.googleapis.com/v1";
+const limpiar = (t) => String(t ?? "").replace(/[\u{10000}-\u{10FFFF}]/gu, "").trim();
+
+function fechaEntrega(t) {
+  const d = t.dueDate;
+  if (!d || !d.year || !d.month || !d.day) return [null, false];
+  const h = t.dueTime || {};
+  return [new Date(Date.UTC(d.year, d.month - 1, d.day, h.hours ?? 23, h.minutes ?? 59)), !!(h.hours !== undefined)];
+}
+
+function materialesDe(el) {
+  const lista = [];
+  for (const m of el.materials || []) {
+    if (m.driveFile) { const f = m.driveFile.driveFile || {}; if (f.id) lista.push({ id: f.id, titulo: limpiar(f.title || "Archivo"), url: f.alternateLink, tipo: "archivo" }); }
+    else if (m.link) lista.push({ id: "url:" + m.link.url, titulo: limpiar(m.link.title || m.link.url), url: m.link.url, tipo: "enlace" });
+    else if (m.youtubeVideo) lista.push({ id: "url:" + m.youtubeVideo.alternateLink, titulo: limpiar(m.youtubeVideo.title || "Vídeo"), url: m.youtubeVideo.alternateLink, tipo: "vídeo" });
+    else if (m.form) lista.push({ id: "url:" + m.form.formUrl, titulo: limpiar(m.form.title || "Formulario"), url: m.form.formUrl, tipo: "formulario" });
+  }
+  return lista.filter((x) => x.url);
+}
+
+async function obtenerTodo() {
+  const ahora = new Date();
+  const cursos = await todasLasPaginas(`${CLASSROOM}/courses`, "courses", { courseStates: "ACTIVE" });
+  const tareas = [], materialesClase = [], profesores = [];
+  for (const curso of cursos) {
+    const nombre = limpiar(curso.name);
+    let trabajos = [], entregas = [], mats = [], profes = [];
+    try { trabajos = await todasLasPaginas(`${CLASSROOM}/courses/${curso.id}/courseWork`, "courseWork"); } catch (e) { registrar(`Sin tareas en ${nombre}: ${e.message}`); }
+    try { entregas = await todasLasPaginas(`${CLASSROOM}/courses/${curso.id}/courseWork/-/studentSubmissions`, "studentSubmissions", { userId: "me" }); } catch (e) { /* sin entregas */ }
+    try { mats = await todasLasPaginas(`${CLASSROOM}/courses/${curso.id}/courseWorkMaterials`, "courseWorkMaterial"); } catch (e) { /* sin materiales */ }
+    try { profes = await todasLasPaginas(`${CLASSROOM}/courses/${curso.id}/teachers`, "teachers"); } catch (e) { registrar(`Sin profesores en ${nombre}: ${e.message}`); }
+    const estados = Object.fromEntries(entregas.map((e) => [e.courseWorkId, e.state]));
+    for (const t of trabajos) {
+      const [fecha, tieneHora] = fechaEntrega(t);
+      const eg = estados[t.id];
+      const entregada = eg === "TURNED_IN" || eg === "RETURNED";
+      let est, etq;
+      if (eg === "RETURNED") [est, etq] = ["Corregida", "entregada"];
+      else if (entregada) [est, etq] = ["Entregada", "entregada"];
+      else if (fecha && fecha < ahora) [est, etq] = ["Vencida", "vencida"];
+      else if (fecha && fecha - ahora <= 3 * 86400000) [est, etq] = ["Pronto", "pronto"];
+      else [est, etq] = ["Pendiente", "pendiente"];
+      tareas.push({
+        id: t.id, titulo: limpiar(t.title || "Sin título"), asignatura: nombre, descripcion: limpiar(t.description || ""),
+        fecha, textoFecha: fecha ? fecha.toLocaleString("es-ES", tieneHora ? { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" } : { day: "2-digit", month: "2-digit", year: "numeric" }) : "Sin fecha",
+        estado: est, etiqueta: etq, entregada, enlace: t.alternateLink, materiales: materialesDe(t),
+      });
+    }
+    for (const m of mats) materialesClase.push({ titulo: limpiar(m.title || "Material"), asignatura: nombre, descripcion: limpiar(m.description || ""), materiales: materialesDe(m) });
+    for (const p of profes) profesores.push({ asignatura: nombre, nombre: limpiar(p.profile?.name?.fullName || ""), correo: p.profile?.emailAddress || "" });
+  }
+  const lejos = 8e15;
+  tareas.sort((a, b) => (a.entregada - b.entregada) || ((a.fecha ? a.fecha.getTime() : lejos) - (b.fecha ? b.fecha.getTime() : lejos)));
+  return { tareas, materialesClase, profesores };
+}
+
+async function cargar() {
+  if (estado.demo) { await cargarDemo(); return; }
+  $("btn-actualizar").disabled = true;
+  estado.avisos = [["Cargando tareas…", "trabajando"]]; mostrarEstado();
+  try {
+    if (!estado.cuenta) {
+      try { const perfil = await llamarGoogle(`${CLASSROOM}/userProfiles/me`); estado.cuenta = perfil.emailAddress || ""; } catch (e) { /* sin correo */ }
+    }
+    const datos = await obtenerTodo();
+    Object.assign(estado, datos);
+    await BD.set("cache:datos", { ...datos, tareas: datos.tareas.map((t) => ({ ...t, fecha: t.fecha ? t.fecha.toISOString() : null })), cuando: Date.now(), cuenta: estado.cuenta });
+    estado.avisos = [];
+    $("panel-portada").classList.remove("activo");
+    irA("tareas");
+    rellenarAsignaturas(); mostrarTareas(); dibujarHoy();
+    traducirTodo();
+    cargarResumenes(); cargarGlosarioDeDrive();
+  } catch (e) {
+    registrar("Error cargando: " + e.message);
+    estado.avisos = [["No se pudieron cargar las tareas", "error"]]; mostrarEstado();
+    $("portada-aviso").textContent = e.message;
+    if (!estado.tareas.length) { $("panel-portada").classList.add("activo"); }
+  }
+  $("btn-actualizar").disabled = false;
+  mostrarEstado();
+}
+
+async function cargarCache() {
+  const c = await BD.get("cache:datos");
+  if (!c) return false;
+  estado.tareas = c.tareas.map((t) => ({ ...t, fecha: t.fecha ? new Date(t.fecha) : null }));
+  estado.materialesClase = c.materialesClase || []; estado.profesores = c.profesores || []; estado.cuenta = c.cuenta || "";
+  return estado.tareas.length > 0;
+}
+
+$("btn-entrar").addEventListener("click", async () => {
+  if (!ajustes.clientId) { await abrirAjustes(); if (!ajustes.clientId) { mostrarAyudaClientId(); return; } }
+  try { await pedirToken(false); await cargar(); } catch (e) { $("portada-aviso").textContent = e.message; registrar("Inicio de sesión: " + e.message); }
+});
+
+
+// ------------------------------------------------------------ Archivos que la app del PC deja en Drive («Classroom Help»)
+async function archivoDeDrive(nombre) {
+  const q = encodeURIComponent(`name = '${nombre}' and trashed = false`);
+  const r = await llamarGoogle(`https://www.googleapis.com/drive/v3/files?q=${q}&orderBy=modifiedTime desc&pageSize=1&fields=files(id,modifiedTime)`);
+  const f = (r.files || [])[0];
+  if (!f) return null;
+  const guardado = await BD.get("drive:" + nombre);
+  if (guardado && guardado.modificado === f.modifiedTime) return guardado.datos;
+  const datos = await llamarGoogle(`https://www.googleapis.com/drive/v3/files/${f.id}?alt=media`);
+  await BD.set("drive:" + nombre, { modificado: f.modifiedTime, datos });
+  return datos;
+}
+
+// ---------- js3_ia.js
+// ============================================================ Gemini
+const MODELOS_GEMINI = ["gemini-flash-latest", "gemini-3.8-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-flash-lite-latest"];
+const MODELOS_FONDO = ["gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-flash-latest", "gemini-3.8-flash"];
+const modelosMuertos = new Set();
+const modelosAgotados = {};  // modelo -> Date hasta la que no se puede usar
+const HORA_RESET = 9;  // la cuota diaria gratuita se renueva a medianoche de California = 09:00 en España
+
+class ErrorIA extends Error { constructor(msg, codigo, hasta) { super(msg); this.codigo = codigo; this.hasta = hasta; } }
+
+function horaResetDiario() { const r = new Date(); r.setHours(HORA_RESET, 0, 0, 0); if (r <= new Date()) r.setDate(r.getDate() + 1); return r; }
+function textoEspera(hasta) {
+  const faltan = (hasta - Date.now()) / 1000;
+  if (faltan > 3600) return `a las ${hasta.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}` + (fechaISO(hasta) !== hoyISO() ? " de mañana" : "");
+  if (faltan > 90) return `en unos ${Math.floor(faltan / 60) + 1} minutos`;
+  return `en ${Math.max(5, Math.floor(faltan))} segundos`;
+}
+function analizarCuota(json) {
+  const ids = []; let espera = null;
+  try {
+    for (const d of json?.error?.details || []) {
+      for (const v of d.violations || []) ids.push(v.quotaId || v.quotaMetric || "");
+      if (d.retryDelay) espera = parseInt(String(d.retryDelay), 10);
+    }
+  } catch (e) { /* nada */ }
+  const txt = ids.join(" ").toLowerCase();
+  if (txt.includes("perday") || txt.includes("per_day")) { const h = horaResetDiario(); return [h, `cuota DIARIA agotada; se renueva a las ${h.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}`]; }
+  const s = espera || 60;
+  return [new Date(Date.now() + s * 1000), `límite por minuto; espera ${s} s`];
+}
+
+async function llamarIA(sistema, historial, { comoJson = false, fondo = false } = {}) {
+  const clave = ajustes.claveIA;
+  if (!clave) throw new ErrorIA("Falta la clave de Gemini. Ponla en Ajustes (⚙).", "clave");
+  const cuerpo = {
+    system_instruction: { parts: [{ text: sistema }] },
+    contents: historial.map((m) => ({ role: m.rol === "user" ? "user" : "model", parts: [{ text: m.texto }] })),
+  };
+  if (comoJson) cuerpo.generationConfig = { responseMimeType: "application/json" };
+  const ahora = Date.now();
+  let modelos = ajustes.modelo ? [ajustes.modelo] : (fondo ? MODELOS_FONDO : MODELOS_GEMINI).filter((m) => !modelosMuertos.has(m));
+  const disponibles = modelos.filter((m) => !(modelosAgotados[m] && modelosAgotados[m] > ahora));
+  if (!disponibles.length) {
+    const prox = new Date(Math.min(...modelos.map((m) => modelosAgotados[m] || ahora)));
+    throw new ErrorIA(`Has agotado la cuota gratuita de Gemini de todos los modelos. Se renueva ${textoEspera(prox)}.`, "cuota", prox);
+  }
+  let ultimo = null;
+  for (const modelo of disponibles) {
+    for (let intento = 0; intento < 2; intento++) {
+      let r;
+      try {
+        r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent`, {
+          method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": clave }, body: JSON.stringify(cuerpo),
+        });
+      } catch (e) { ultimo = new ErrorIA("No hay conexión a internet.", "red"); break; }
+      if (r.ok) {
+        const datos = await r.json();
+        const partes = datos.candidates?.[0]?.content?.parts || [];
+        return partes.map((p) => p.text || "").join("");
+      }
+      const texto = await r.text();
+      let json = {}; try { json = JSON.parse(texto); } catch (e) { /* no json */ }
+      const bajo = texto.toLowerCase();
+      if (r.status === 429 && (bajo.includes("quota") || bajo.includes("exceeded"))) {
+        const [hasta, desc] = analizarCuota(json);
+        registrar(`IA 429 (${modelo}): ${desc}`);
+        modelosAgotados[modelo] = hasta;
+        ultimo = new ErrorIA(`Cuota agotada en ${modelo}. Se renueva ${textoEspera(hasta)}.`, "cuota", hasta);
+        break;
+      }
+      registrar(`IA error ${r.status} (${modelo}): ${(json?.error?.message || texto).slice(0, 200)}`);
+      if (r.status === 400 || r.status === 401 || r.status === 403 || bajo.includes("api key")) throw new ErrorIA("La clave de Gemini no es válida. Revísala en Ajustes.", r.status);
+      if (r.status === 404) { modelosMuertos.add(modelo); ultimo = new ErrorIA("Ese modelo ya no existe.", 404); break; }
+      ultimo = new ErrorIA("La IA está saturada ahora mismo. Vuelve a probar en unos minutos.", r.status);
+      if (intento === 0) { await dormir(fondo ? 8000 : 3000); continue; }
+      break;
+    }
+  }
+  if (ultimo && ultimo.codigo === "cuota") {
+    const prox = new Date(Math.min(...modelos.map((m) => modelosAgotados[m] || ahora + 60000)));
+    throw new ErrorIA(`Has agotado la cuota gratuita de Gemini de todos los modelos. Se renueva ${textoEspera(prox)}.`, "cuota", prox);
+  }
+  throw ultimo || new ErrorIA("La IA no ha respondido.", "vacio");
+}
+
+// ============================================================ Traducción
+const INSTRUCCIONES_TRADUCCION = `Eres un traductor para un estudiante de FP en Barcelona.
+Recibes un JSON con una lista de textos numerados (títulos, asignaturas y enunciados de Google Classroom).
+Para cada texto indica su idioma principal y dame su traducción al castellano:
+- "idioma": "ca" (catalán), "en" (inglés), "es" (castellano) u "otro".
+- "castellano": la traducción completa al castellano, manteniendo saltos de línea, enlaces, nombres propios y siglas tal cual. Si ya está en castellano, repítelo igual.
+Responde SOLO con JSON con esta forma: {"resultados": [{"n": 0, "idioma": "ca", "castellano": "..."}]}`;
+
+function conCastellano(original, traduccion) {
+  traduccion = (traduccion || "").trim();
+  if (!traduccion || traduccion.toLowerCase() === original.trim().toLowerCase()) return original;
+  if (original.includes("\n") || original.length > 120) return `${original}\n\n(${traduccion})`;
+  return `${original} (${traduccion})`;
+}
+// Nombres de las asignaturas en castellano con sus siglas (misma lista que la app del PC)
+const ASIGNATURAS = [
+  [/\b0179\b|angl[eè]s|ingl[eé]s/i, "Inglés", "ING"],
+  [/\bM?0?622\b|\bTIM\b|transporte? internacional/i, "Transporte internacional de mercancías", "TIM"],
+  [/\bM?1709\b|\bIPO\b/i, "Itinerario personal para la empleabilidad I", "IPO I"],
+  [/\bM?0?624\b|\bCTL\b|comercialitzaci[oó] del transport|comercializaci[oó]n del transporte/i, "Comercialización del transporte y la logística", "CTL"],
+  [/\bM?0?627\b|\bGACI\b/i, "Gestión administrativa del comercio internacional", "GACI"],
+  [/\bM?0?625\b|log[ií]stica d'emmagatzematge|log[ií]stica de almacen/i, "Logística de almacenamiento", "LA"],
+  [/\bM?0?822\b|\bSIM\b|sistema d'informaci[oó] de mercats|sistema de informaci[oó]n de mercados/i, "Sistema de información de mercados", "SIM"],
+  [/eines digitals|herramientas digitales|\bEDGD\b/i, "Herramientas digitales", "HD"],
+  [/\bM?0?623\b|\bGEF\b|gesti[oó]n? econ[oò]mica/i, "Gestión económica y financiera de la empresa", "GEF"],
+  [/projectes|proyectos/i, "Proyectos", "PRO"],
+  [/mentor/i, "Mentorías", "MEN"],
+];
+function asignaturaBonita(nombre) {
+  const n = (nombre || "").replace(/[_|/]+/g, " ").trim();
+  for (const [re, cast, siglas] of ASIGNATURAS) if (n === cast || n === `${cast} (${siglas})` || n === siglas || re.test(n)) return `${cast} (${siglas})`;
+  return nombre;
+}
+function tr(texto) { return ajustes.traducir ? (estado.traducciones[texto] || texto) : texto; }
+function trAsig(nombre) { const b = asignaturaBonita(nombre); return b !== nombre ? b : tr(nombre); }
+
+async function traducirTodo() {
+  if (!ajustes.claveIA || estado.traduciendo) return;
+  const textos = [...new Set(estado.tareas.flatMap((t) => [t.titulo, t.asignatura, t.descripcion]).filter(Boolean))];
+  const pendientes = textos.filter((t) => !(t in estado.traducciones));
+  if (!pendientes.length) return;
+  estado.traduciendo = true; mostrarEstado();
+  let hechos = 0, fallos = 0;
+  const lotes = []; let lote = [], tam = 0;
+  for (const t of pendientes) { if (lote.length && (tam + t.length > 6000 || lote.length >= 20)) { lotes.push(lote); lote = []; tam = 0; } lote.push(t); tam += t.length; }
+  if (lote.length) lotes.push(lote);
+  for (const l of lotes) {
+    try {
+      let resp = (await llamarIA(INSTRUCCIONES_TRADUCCION, [{ rol: "user", texto: JSON.stringify(l.map((t, i) => ({ n: i, texto: t }))) }], { comoJson: true, fondo: true })).trim();
+      if (resp.startsWith("```")) resp = resp.replace(/^```(json)?/, "").replace(/```$/, "").trim();
+      const datos = JSON.parse(resp);
+      const filas = Array.isArray(datos) ? datos : (datos.resultados || []);
+      for (const f of filas) {
+        const n = parseInt(f.n, 10), cast = String(f.castellano || "").trim();
+        if (!(n >= 0 && n < l.length) || !cast) continue;
+        const idioma = String(f.idioma || "").toLowerCase();
+        estado.traducciones[l[n]] = idioma === "en" ? conCastellano(l[n], cast) : idioma === "es" ? l[n] : cast;
+        hechos++;
+      }
+      mostrarTareas(); dibujarHoy();
+      await dormir(4000);
+    } catch (e) {
+      fallos++;
+      registrar("Traducción: " + e.message);
+      if (e.codigo === "cuota" || e.codigo === "clave") break;
+    }
+  }
+  await BD.set("traducciones", estado.traducciones);
+  estado.traduciendo = false;
+  estado.avisos = fallos ? [[`Traducción a medias: ${hechos} hechos, ${fallos} lotes fallidos`, "aviso"]] : [];
+  mostrarTareas(); dibujarHoy(); mostrarEstado();
+}
+
+// ============================================================ Archivos adjuntos (Drive)
+const MAX_TEXTO_ARCHIVO = 40000;
+const EXPORTAR = { "application/vnd.google-apps.document": "text/plain", "application/vnd.google-apps.presentation": "text/plain", "application/vnd.google-apps.spreadsheet": "text/csv" };
+const LIBS = {
+  pdf: "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",
+  mammoth: "https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js",
+  xlsx: "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
+  jszip: "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js",
+};
+const cargadas = {};
+function cargarLib(nombre) {
+  if (cargadas[nombre]) return cargadas[nombre];
+  cargadas[nombre] = new Promise((res, rej) => { const s = document.createElement("script"); s.src = LIBS[nombre]; s.onload = res; s.onerror = () => rej(new Error("No se pudo cargar " + nombre)); document.head.appendChild(s); });
+  return cargadas[nombre];
+}
+
+async function textoPdf(datos) {
+  await cargarLib("pdf");
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  const pdf = await pdfjsLib.getDocument({ data: datos }).promise;
+  const paginas = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const p = await pdf.getPage(i); const c = await p.getTextContent();
+    let linea = "", ultimoY = null, texto = "";
+    for (const it of c.items) { if (ultimoY !== null && Math.abs(it.transform[5] - ultimoY) > 3) { texto += linea + "\n"; linea = ""; } linea += it.str + (it.hasEOL ? "\n" : " "); ultimoY = it.transform[5]; }
+    texto += linea;
+    if (texto.trim()) paginas.push(`[Página ${i}]\n${texto.trim()}`);
+  }
+  return paginas.join("\n\n");
+}
+async function textoOffice(datos, nombre) {
+  const ext = nombre.toLowerCase().split(".").pop();
+  if (ext === "docx") { await cargarLib("mammoth"); return (await mammoth.extractRawText({ arrayBuffer: datos })).value; }
+  if (ext === "xlsx") {
+    await cargarLib("xlsx"); const wb = XLSX.read(datos, { type: "array" });
+    return wb.SheetNames.map((n, i) => `[Hoja ${i + 1}: ${n}]\n` + XLSX.utils.sheet_to_csv(wb.Sheets[n], { FS: " | " })).join("\n\n");
+  }
+  if (ext === "pptx") {
+    await cargarLib("jszip"); const z = await JSZip.loadAsync(datos);
+    const nombres = Object.keys(z.files).filter((n) => /^ppt\/slides\/slide\d+\.xml$/.test(n)).sort((a, b) => parseInt(a.match(/\d+/)[0]) - parseInt(b.match(/\d+/)[0]));
+    const out = [];
+    for (const [i, n] of nombres.entries()) { const xml = await z.file(n).async("string"); const t = [...xml.matchAll(/<a:t>([^<]*)<\/a:t>/g)].map((m) => m[1]).join(" "); out.push(`[Diapositiva ${i + 1}]\n${t}`); }
+    return out.join("\n\n");
+  }
+  return "";
+}
+
+async function leerArchivoDrive(id) {
+  const meta = await llamarGoogle(`https://www.googleapis.com/drive/v3/files/${id}?supportsAllDrives=true&fields=id,name,mimeType,modifiedTime,size`);
+  const info = { titulo: meta.name, modificado: meta.modifiedTime, texto: "", aviso: "" };
+  const tipo = meta.mimeType || "", nombre = (meta.name || "").toLowerCase();
+  try {
+    if (EXPORTAR[tipo]) {
+      const r = await llamarGoogle(`https://www.googleapis.com/drive/v3/files/${id}/export?mimeType=${encodeURIComponent(EXPORTAR[tipo])}`, { crudo: true });
+      info.texto = await r.text();
+    } else if (tipo.startsWith("application/vnd.google-apps")) info.aviso = "Tipo de archivo de Google que no se puede leer como texto.";
+    else if (+meta.size > 25 * 1024 * 1024) info.aviso = "Archivo demasiado grande.";
+    else if (/^(image|video|audio)\//.test(tipo)) info.aviso = "Es una imagen, vídeo o audio.";
+    else {
+      const r = await llamarGoogle(`https://www.googleapis.com/drive/v3/files/${id}?alt=media&supportsAllDrives=true`, { crudo: true });
+      const datos = await r.arrayBuffer();
+      if (tipo === "application/pdf" || nombre.endsWith(".pdf")) info.texto = await textoPdf(datos);
+      else if (/\.(docx|xlsx|pptx)$/.test(nombre)) info.texto = await textoOffice(datos, nombre);
+      else if (tipo.startsWith("text/") || /\.(txt|csv|md)$/.test(nombre)) info.texto = new TextDecoder().decode(datos);
+      else info.aviso = "Tipo de archivo que la app no sabe leer.";
+    }
+  } catch (e) { registrar(`No se pudo leer «${info.titulo}»: ${e.message}`); info.aviso = "No se ha podido leer este archivo."; }
+  info.texto = limpiar(info.texto).replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n\n");
+  if (!info.texto && !info.aviso) info.aviso = "Sin texto (¿PDF escaneado?).";
+  if (info.texto.length > MAX_TEXTO_ARCHIVO) info.texto = info.texto.slice(0, MAX_TEXTO_ARCHIVO) + "\n[... el archivo sigue, pero es muy largo ...]";
+  return info;
+}
+
+async function leerArchivosDe(tarea) {
+  if (estado.demo) return;
+  const pendientes = tarea.materiales.filter((m) => m.tipo === "archivo" && !estado.adjuntos[m.id]);
+  if (!pendientes.length) return;
+  estado.leyendo = true; mostrarEstado();
+  for (const m of pendientes) {
+    try {
+      const guardado = await BD.get("adj:" + m.id);
+      if (guardado) { estado.adjuntos[m.id] = guardado; continue; }
+      const info = await leerArchivoDrive(m.id);
+      info.origen = `tarea «${tarea.titulo}», ${tarea.asignatura}`;
+      estado.adjuntos[m.id] = info;
+      await BD.set("adj:" + m.id, info);
+    } catch (e) {
+      registrar(`Adjunto ${m.titulo}: ${e.message}`);
+      estado.adjuntos[m.id] = { titulo: m.titulo, texto: "", aviso: e.status === 404 ? "El archivo ya no existe o no está compartido." : "No se ha podido leer." };
+    }
+  }
+  estado.leyendo = false; mostrarEstado();
+  if (estado.seleccionada === tarea) mostrarDetalle();
+}
+
+// ============================================================ Asistente
+const INSTRUCCIONES_IA = `Eres el asistente de Classroom Help, una app que usa un estudiante de un ciclo formativo de FP para organizarse con Google Classroom. Muchas tareas están escritas en catalán.
+
+Tu trabajo es AYUDARLE A ENTENDER las tareas: explicar qué se le pide, aclarar palabras o siglas (por ejemplo RA, evidencia, píndola, rúbrica), decirle por dónde empezar y ayudarle a organizarse.
+
+Reglas:
+- Responde siempre en castellano, con frases claras y cortas.
+- No hagas las tareas por el estudiante: no redactes el trabajo ni des las respuestas de ejercicios o tests. Si te lo pide, explícale cómo hacerlo por su cuenta, con pasos o pistas.
+- Abajo tienes el TEXTO de los archivos de la tarea seleccionada y FRAGMENTOS de otros archivos que encajan con la pregunta. Busca la respuesta ahí antes de decir que no la sabes, y di de qué archivo sale.
+- Si te pregunta por el correo de un profesor, mira PROFESORES DE CADA CLASE y CORREOS ENCONTRADOS.
+- Si pregunta por sus clases (qué tiene hoy o mañana, a qué hora acaba...), responde con el HORARIO DE CLASES.
+- Si un enunciado es ambiguo, dilo y sugiérele qué preguntar al profesor.
+- No inventes datos sobre el centro, los profesores ni las fechas.
+- Escribe en texto plano, sin Markdown (nada de asteriscos ni almohadillas). Para listas usa guiones.
+
+Hoy es {hoy}.
+
+TAREAS PENDIENTES:
+{lista}
+
+TAREA QUE TIENE SELECCIONADA AHORA:
+{seleccionada}
+
+PROFESORES DE CADA CLASE:
+{profesores}
+
+HORARIO DE CLASES DEL ESTUDIANTE:
+{horario}
+
+FESTIVOS Y EVENTOS DEL ESTUDIANTE:
+{eventos}
+
+TEXTO DE LOS ARCHIVOS DE LA TAREA SELECCIONADA:
+{adjuntos}
+
+FRAGMENTOS DE OTROS ARCHIVOS QUE ENCAJAN CON LA PREGUNTA:
+{fragmentos}
+`;
+
+function horarioComoTexto() {
+  if (!HORARIO.clases) return "No disponible.";
+  const lineas = [`Grupo ${HORARIO.grupo}, curso ${HORARIO.curso}`];
+  for (let d = 0; d < 7; d++) {
+    const cl = clasesDelDia(d);
+    if (cl.length) { lineas.push(`${DIAS[d]}:`); for (const c of cl) lineas.push(`  ${c.inicio}-${c.fin} ${c.castellano || c.asignatura} (${c.codigo}) - ${c.profesor}`); }
+  }
+  for (const p of HORARIO.pausas || []) lineas.push(`Pausa: ${p.inicio}-${p.fin}`);
+  return lineas.join("\n");
+}
+
+const PALABRAS_VACIAS = new Set("para como cómo donde dónde cual cuál que qué quien quién cuando cuándo tengo tiene hacer puedo sobre este esta esto esos esas estos estas desde hasta entre pero porque también ejemplo dime explica explícame quiero saber necesito algo cosa tarea tareas archivo archivos profesor profesora asignatura clase correo email mail dirección teléfono hay the and with what".split(" "));
+function buscarEnAdjuntos(pregunta, maximo) {
+  const q = (pregunta || "").toLowerCase();
+  const palabras = (q.match(/[\wáéíóúüñçàèòï·'-]{4,}/g) || []).filter((w) => !PALABRAS_VACIAS.has(w));
+  const partes = [];
+  if (/correo|email|e-mail|mail|@|contactar|escribir a/.test(q)) {
+    const correos = {};
+    for (const [id, info] of Object.entries(estado.adjuntos)) for (const c of (info.texto || "").match(REGEX_CORREO) || []) (correos[c.toLowerCase()] ||= new Set()).add(info.titulo || id);
+    const lineas = Object.entries(correos).sort().map(([c, v]) => `- ${c} (aparece en: ${[...v].slice(0, 3).join(", ")})`);
+    if (lineas.length) partes.push("CORREOS ENCONTRADOS EN LOS ARCHIVOS:\n" + lineas.slice(0, 60).join("\n"));
+  }
+  if (!palabras.length) return partes.join("\n\n");
+  const puntuados = [];
+  for (const [id, info] of Object.entries(estado.adjuntos)) {
+    const texto = info.texto || ""; if (!texto) continue;
+    const bajo = texto.toLowerCase(), titulo = (info.titulo || "").toLowerCase();
+    let puntos = 0; for (const w of palabras) { puntos += bajo.split(w).length - 1; if (titulo.includes(w)) puntos += 5; }
+    if (puntos) puntuados.push([puntos, id, info]);
+  }
+  puntuados.sort((a, b) => b[0] - a[0]);
+  let total = 0;
+  for (const [, , info] of puntuados.slice(0, 12)) {
+    const texto = info.texto, bajo = texto.toLowerCase(); const trozos = [], usados = [];
+    for (const w of palabras) { let pos = bajo.indexOf(w); while (pos !== -1 && trozos.length < 4) { const ini = Math.max(0, pos - 350), fin = Math.min(texto.length, pos + 450); if (!usados.some(([a, b]) => ini < b && fin > a)) { trozos.push(texto.slice(ini, fin).trim()); usados.push([ini, fin]); } pos = bajo.indexOf(w, pos + 1); } }
+    if (!trozos.length) continue;
+    const bloque = `=== ${info.titulo} (${info.origen || ""}) ===\n` + trozos.join("\n[...]\n");
+    if (total + bloque.length > maximo) break;
+    total += bloque.length; partes.push(bloque);
+  }
+  return partes.join("\n\n");
+}
+
+function contexto(pregunta, tarea) {
+  const ahorro = ajustes.ahorro;
+  const lista = estado.tareas.filter((t) => !t.entregada).slice(0, 60).map((t) => `- [${t.asignatura}] ${t.titulo} | entrega: ${t.textoFecha} | ${t.estado}`);
+  let sel = "Ninguna.";
+  if (tarea) sel = `Título: ${tarea.titulo}\nAsignatura: ${tarea.asignatura}\nEntrega: ${tarea.textoFecha} (${tarea.estado})\nEnunciado original:\n${tarea.descripcion || "(sin enunciado)"}\nMateriales adjuntos: ${tarea.materiales.map((m) => m.titulo).join(", ") || "ninguno"}`;
+  const maximo = ahorro ? 35000 : 120000;
+  let adj = [], total = 0;
+  if (tarea) for (const m of tarea.materiales) {
+    const info = estado.adjuntos[m.id];
+    if (m.tipo !== "archivo") { adj.push(`=== ${m.titulo} (${m.tipo}: ${m.url}) ===`); continue; }
+    if (!info) { adj.push(`=== ${m.titulo} === (todavía no leído)`); continue; }
+    const texto = info.texto || `(No se ha podido leer: ${info.aviso})`;
+    if (total + texto.length > maximo) { adj.push(`=== ${info.titulo} === (no cabe)`); continue; }
+    total += texto.length; adj.push(`=== ${info.titulo} ===\n${texto}`);
+  }
+  const profes = estado.profesores.map((p) => `- ${p.asignatura}: ${p.nombre} — ${p.correo || correoDeProfesor(p.nombre)[0] || "(correo no visible)"}`);
+  const eventos = estado.eventos.map((e) => `- ${e.fecha}: ${e.titulo} (${e.tipo})`);
+  const a = new Date();
+  return INSTRUCCIONES_IA
+    .replace("{hoy}", `${DIAS[(a.getDay() + 6) % 7].toLowerCase()} ${a.toLocaleDateString("es-ES")}, son las ${a.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}`)
+    .replace("{lista}", lista.join("\n") || "Ninguna.").replace("{seleccionada}", sel)
+    .replace("{profesores}", profes.join("\n") || "(no disponibles)").replace("{horario}", horarioComoTexto())
+    .replace("{eventos}", eventos.join("\n") || "(ninguno)")
+    .replace("{adjuntos}", adj.join("\n\n") || "(ninguno)")
+    .replace("{fragmentos}", buscarEnAdjuntos(pregunta, ahorro ? 6000 : 30000) || "(ninguno)");
+}
+
+function escribirChat(quien, texto, clase) {
+  const div = document.createElement("div");
+  div.className = "msg " + (clase || (quien === "Tú" ? "yo" : "ia"));
+  let html = esc(texto).replace(/(https?:\/\/[^\s<>()«»"]+)/g, (u) => `<a href="${u.replace(/[.,;:]+$/, "")}" target="_blank" rel="noopener">${u}</a>`);
+  div.innerHTML = (quien ? `<span class="quien">${esc(quien)}</span>` : "") + html;
+  $("mensajes").appendChild(div);
+  $("mensajes").scrollTop = $("mensajes").scrollHeight;
+  return div;
+}
+function saludoChat() {
+  $("mensajes").innerHTML = "";
+  if (ajustes.claveIA || estado.demo) escribirChat("Asistente", "Hola. Elige una tarea y pregúntame lo que no entiendas. Por ejemplo: «¿Qué me piden aquí?» o «¿Cuál es el correo de la profe de SIM?».");
+  else escribirChat(null, "Para usar el asistente, pon tu clave de Gemini en Ajustes (⚙). Solo hay que hacerlo una vez.", "aviso");
+}
+async function preguntar(texto) {
+  texto = (texto || "").trim();
+  if (!texto || estado.iaOcupada) return;
+  if (!ajustes.claveIA && !estado.demo) { await abrirAjustes(); if (!ajustes.claveIA) return; }
+  $("chat-texto").value = "";
+  escribirChat("Tú", texto);
+  estado.historial.push({ rol: "user", texto });
+  const pensando = escribirChat(null, "Pensando…", "aviso");
+  estado.iaOcupada = true; $("chat-enviar").disabled = true;
+  const tarea = estado.seleccionada;
+  try {
+    if (tarea && !estado.demo) await leerArchivosDe(tarea);
+    const sistema = contexto(texto, tarea);
+    let respuesta;
+    if (estado.demo) { await dormir(600); respuesta = "Esto es una demostración: aquí respondería Gemini usando tus tareas, el horario y los archivos de Classroom. Pon tu clave en Ajustes para usarlo de verdad."; }
+    else respuesta = limpiar(await llamarIA(sistema, estado.historial.slice(-12))).replace(/\*\*/g, "");
+    pensando.remove();
+    estado.historial.push({ rol: "assistant", texto: respuesta });
+    escribirChat("Asistente", respuesta || "No he podido responder a eso. Prueba a preguntarlo de otra forma.");
+  } catch (e) {
+    pensando.remove(); estado.historial.pop();
+    escribirChat(null, e.message, "aviso");
+  }
+  estado.iaOcupada = false; $("chat-enviar").disabled = false;
+}
+$("form-chat").addEventListener("submit", (e) => { e.preventDefault(); preguntar($("chat-texto").value); });
+$("chat-nueva").addEventListener("click", () => { estado.historial = []; saludoChat(); });
+document.querySelectorAll(".rapidas button").forEach((b) => b.addEventListener("click", () => {
+  if (b.dataset.p === "__explicar") explicarTarea(); else preguntar(b.dataset.p);
+}));
+function explicarTarea() {
+  const t = estado.seleccionada;
+  if (!t) { escribirChat(null, "Primero elige una tarea de la lista.", "aviso"); if (window.innerWidth < 1000) irA("tareas"); return; }
+  if (window.innerWidth < 1000) irA("asistente");
+  preguntar(`Explícame qué me piden en la tarea «${tr(t.titulo)}» y por dónde empiezo.`);
+}
+
+// ---------- js4_ui.js
+// ============================================================ Tareas
+function tareasVisibles() {
+  return estado.tareas.filter((t) => (!estado.asignatura || t.asignatura === estado.asignatura) && (estado.verEntregadas || !t.entregada));
+}
+function rellenarAsignaturas() {
+  const sel = $("sel-asignatura");
+  const asigs = [...new Set(estado.tareas.map((t) => t.asignatura))].sort();
+  sel.innerHTML = `<option value="">Todas las asignaturas</option>` + asigs.map((a) => `<option value="${esc(a)}">${esc(trAsig(a))}</option>`).join("");
+  sel.value = estado.asignatura;
+}
+function mostrarTareas() {
+  const lista = $("lista-tareas");
+  const vis = tareasVisibles();
+  if (!estado.tareas.length) { lista.innerHTML = ""; return; }
+  lista.innerHTML = vis.map((t, i) => `
+    <div class="tarea ${t.etiqueta} ${t === estado.seleccionada ? "sel" : ""}" data-i="${i}">
+      <div class="t">${esc(tr(t.titulo))}</div>
+      <div class="a"><span data-correo="${i}">${esc(trAsig(t.asignatura))}</span>${profesoresDe(t.asignatura).length ? ` · <span data-correo="${i}">${esc(profesoresDe(t.asignatura).map(nombreCorto).join(", "))} ✉</span>` : ""}</div>
+      <div class="f"><span>${esc(t.textoFecha)}</span><span class="pill ${t.etiqueta === "entregada" ? (t.estado === "Corregida" ? "corregida" : "entregada") : t.etiqueta}">${esc(t.estado)}</span></div>
+    </div>`).join("") || `<div class="tarjeta info">No hay tareas que mostrar con estos filtros.</div>`;
+  lista.querySelectorAll(".tarea").forEach((el) => el.addEventListener("click", (e) => {
+    const t = vis[+el.dataset.i];
+    if (e.target.dataset.correo !== undefined) { e.stopPropagation(); escribirProfesor(t); return; }
+    seleccionar(t);
+  }));
+  rellenarAsignaturas();
+  mostrarEstado();
+}
+function seleccionar(t) {
+  estado.seleccionada = t;
+  document.querySelectorAll(".tarea").forEach((el) => el.classList.toggle("sel", tareasVisibles()[+el.dataset.i] === t));
+  mostrarDetalle();
+  $("detalle").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  if (ajustes.ahorro && !estado.demo) leerArchivosDe(t);
+}
+function mostrarDetalle() {
+  const t = estado.seleccionada;
+  if (!t) { $("detalle").style.display = "none"; return; }
+  $("detalle").style.display = "";
+  $("det-titulo").textContent = tr(t.titulo);
+  $("det-sub").textContent = `${trAsig(t.asignatura)}   |   Entrega: ${t.textoFecha}   |   ${t.estado}`;
+  $("det-enunciado").textContent = t.descripcion ? tr(t.descripcion) : "Esta tarea no tiene enunciado.";
+  $("det-materiales").innerHTML = t.materiales.map((m) => {
+    const info = estado.adjuntos[m.id];
+    const nota = m.tipo !== "archivo" ? m.tipo : info ? (info.texto ? "leído por el asistente" : info.aviso) : (ajustes.ahorro ? "se leerá al preguntar" : "");
+    return `<li><a href="${esc(m.url)}" target="_blank" rel="noopener">${esc(m.titulo)}</a><small>${esc(nota)}</small></li>`;
+  }).join("") || "<li><small>Sin materiales adjuntos</small></li>";
+  $("det-abrir").href = t.enlace || "#";
+}
+$("det-explicar").addEventListener("click", explicarTarea);
+$("det-correo").addEventListener("click", () => estado.seleccionada && escribirProfesor(estado.seleccionada));
+
+// ============================================================ Correo a los profesores
+function usuarioSegunPatron(nombre) {
+  const partes = sinAcentos(nombre).toLowerCase().split(/[\s-]+/).filter((p) => p && !["de", "del", "la", "i", "y"].includes(p));
+  if (partes.length < 2) return "";
+  if (partes.length === 2) return partes[0][0] + partes[1];
+  if (partes.length === 3) return ["angel", "maria", "jose", "juan", "ana", "carmen", "luis", "antonio", "josep", "joan", "anna", "pau", "marc"].includes(partes[1]) ? partes[0][0] + partes[1][0] + partes[2] : partes[0][0] + partes[1];
+  return partes[0][0] + partes[1][0] + partes[2];
+}
+function correoDeProfesor(nombre) {
+  const p = estado.profesores.find((x) => x.nombre === nombre && x.correo);
+  if (p) return [p.correo, true];
+  const encontrados = new Set();
+  for (const info of Object.values(estado.adjuntos)) for (const c of (info.texto || "").match(REGEX_CORREO) || []) encontrados.add(c.toLowerCase());
+  const usuario = usuarioSegunPatron(nombre);
+  for (const c of encontrados) if (c.split("@")[0] === usuario) return [c, true];
+  const apellido = sinAcentos(nombre.split(" ").pop() || "").toLowerCase();
+  for (const c of encontrados) if (apellido && c.includes(apellido) && c.endsWith("@" + DOMINIO_CENTRO)) return [c, true];
+  return usuario ? [`${usuario}@${DOMINIO_CENTRO}`, false] : ["", false];
+}
+function profesoresDe(asignatura) { return estado.profesores.filter((p) => p.asignatura === asignatura && p.nombre && !/^coordinaci/i.test(p.nombre)).map((p) => p.nombre); }
+function nombreCorto(n) { const p = n.split(" "); return p.length > 2 ? `${p[0]} ${p[p.length - 1]}` : n; }
+function nombreClassroom(nombre) {
+  const u = usuarioSegunPatron(nombre);
+  return estado.profesores.find((p) => u && usuarioSegunPatron(p.nombre) === u)?.nombre || nombre;
+}
+async function escribirProfesor(tarea, nombres) {
+  nombres = nombres || profesoresDe(tarea.asignatura);
+  if (!nombres.length) { aviso("Todavía no conozco al profesor de esta asignatura. Pulsa ⟳ para volver a leer la lista."); return; }
+  let nombre = nombres[0];
+  if (nombres.length > 1) {
+    const r = await dialogo(`<h3>¿A quién escribes?</h3>` + nombres.map((n, i) => { const [c, seguro] = correoDeProfesor(n); return `<div class="paso"><label class="check"><input type="radio" name="prof" value="${i}" ${i === 0 ? "checked" : ""}> <b>${esc(n)}</b> · ${esc(c || "sin correo")}${seguro ? "" : " (deducido)"}</label></div>`; }).join(""),
+      [{ texto: "Cancelar", sec: true }, { texto: "Escribir" }]);
+    if (r.boton !== "Escribir") return;
+    nombre = nombres[+(document.querySelector('input[name="prof"]:checked')?.value || 0)] || nombres[0];
+  }
+  abrirGmail(nombreClassroom(nombre), tarea);
+}
+async function abrirGmail(nombre, tarea) {
+  const [correo, seguro] = correoDeProfesor(nombre);
+  if (!correo) { aviso(`No he encontrado el correo de ${nombre}.`); return; }
+  if (!seguro && !(await confirmar(`No tengo el correo de ${nombre} confirmado en ningún documento.\n\nSiguiendo el patrón del centro sería:\n${correo}\n\n¿Abro el correo con esa dirección?`))) return;
+  const asunto = `Consulta sobre «${tarea.titulo}» (${tarea.asignatura})`;
+  const cuerpo = `Hola, ${nombre.split(" ")[0]}:\n\n\n\nGracias.\n`;
+  const r = await dialogo(`<h3>Escribir a ${esc(nombre)}</h3><p>${esc(correo)}</p><p class="info">Elige con qué abrirlo:</p>`,
+    [{ texto: "Cancelar", sec: true }, { texto: "App de Gmail", valor: "app" }, { texto: "Gmail en el navegador", valor: "web" }]);
+  if (r.boton === "app") location.href = `mailto:${correo}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+  else if (r.boton === "web") window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(correo)}&su=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}${estado.cuenta ? "&authuser=" + encodeURIComponent(estado.cuenta) : ""}`, "_blank");
+}
+
+// ============================================================ Horario
+const COLORES_ASIG = [["#e3f1ea", "#2e8b61"], ["#e5edfa", "#3d6fc2"], ["#fbeee0", "#c47a2c"], ["#f3e6f6", "#8e4aa6"], ["#fdf3d7", "#b8901c"], ["#e2f3f5", "#2a8d98"], ["#fbe5e7", "#c2485a"], ["#ecebfa", "#5b55b8"], ["#e9f2dc", "#6a9a2b"], ["#f1ece6", "#8a6a4b"]];
+function colorAsig(nombre) { const nombres = [...new Set((HORARIO.clases || []).map((c) => c.asignatura))].sort(); const i = nombres.indexOf(nombre); return COLORES_ASIG[(i >= 0 ? i : nombre.length) % COLORES_ASIG.length]; }
+function clasesDelDia(d) { return (HORARIO.clases || []).filter((c) => +c.dia === d).sort((a, b) => minutos(a.inicio) - minutos(b.inicio)); }
+function nombreClase(c, corto = true) { return corto ? (c.corto || c.castellano || c.asignatura) : (ajustes.traducir ? (c.castellano || c.asignatura) : c.asignatura); }
+function claseActual() {
+  const a = new Date(), dia = (a.getDay() + 6) % 7, min = a.getHours() * 60 + a.getMinutes();
+  let actual = null, siguiente = null;
+  for (const c of clasesDelDia(dia)) { if (minutos(c.inicio) <= min && min < minutos(c.fin)) actual = c; else if (minutos(c.inicio) > min && !siguiente) siguiente = c; }
+  return [dia, actual, siguiente];
+}
+function eventosDelDia(iso) { return estado.eventos.filter((e) => e.fecha === iso); }
+function dibujarHoy() {
+  const [dia, actual0, siguiente0] = claseActual();
+  let clases = clasesDelDia(dia), actual = actual0, siguiente = siguiente0;
+  const evs = eventosDelDia(hoyISO());
+  const festivo = evs.some((e) => e.tipo === "festivo");
+  if (festivo) { clases = []; actual = siguiente = null; }
+  $("hoy-titulo").textContent = `Hoy · ${DIAS[dia]}`;
+  $("hoy-eventos").innerHTML = evs.map((e) => `<span class="pill" style="background:${e.tipo === "festivo" ? "var(--naranja-suave)" : "var(--azul-suave)"};color:${e.tipo === "festivo" ? "#8a4b00" : "var(--azul)"}">${esc(e.titulo)}</span>`).join("");
+  let resumen;
+  if (!HORARIO.clases) resumen = "No tengo tu horario.";
+  else if (actual) resumen = `Ahora: ${nombreClase(actual, false)} (hasta las ${actual.fin})` + (siguiente ? ` · Después: ${nombreClase(siguiente)} a las ${siguiente.inicio}` : "");
+  else if (siguiente) resumen = `Siguiente: ${nombreClase(siguiente, false)} a las ${siguiente.inicio}`;
+  else if (clases.length) resumen = `Has terminado las clases de hoy (acabaste a las ${clases[clases.length - 1].fin}).`;
+  else if (festivo) resumen = "Hoy es festivo: no hay clase.";
+  else { resumen = "Hoy no tienes clase."; for (let k = 1; k <= 7; k++) { const d = (dia + k) % 7, cl = clasesDelDia(d); if (cl.length) { resumen += ` El ${DIAS[d].toLowerCase()} empiezas a las ${cl[0].inicio} con ${nombreClase(cl[0])}.`; break; } } }
+  $("hoy-resumen").textContent = resumen;
+  const min = new Date().getHours() * 60 + new Date().getMinutes();
+  $("hoy-clases").innerHTML = clases.map((c) => {
+    const [fondo, color] = colorAsig(c.asignatura); const pasada = minutos(c.fin) <= min, ahora = c === actual;
+    return `<div class="clase ${pasada ? "pasada" : ""} ${ahora ? "ahora" : ""}" style="background:${fondo};border-left-color:${color};color:${color}">
+      <div class="h">${c.inicio}–${c.fin}${ahora ? "  AHORA" : ""}</div><div class="n" style="color:var(--texto)">${esc(nombreClase(c))}</div>
+      <div class="p" data-prof="${esc(c.profesor)}" data-asig="${esc(c.castellano || c.asignatura)}">${esc(c.profesor)}</div></div>`;
+  }).join("");
+  $("hoy-clases").querySelectorAll(".p").forEach((el) => el.addEventListener("click", () => escribirDesdeHorario(el.dataset.prof, el.dataset.asig)));
+}
+function dibujarSemana() {
+  const cont = $("semana");
+  if (!HORARIO.clases) { cont.innerHTML = "<div class='info'>No tengo tu horario.</div>"; return; }
+  const [hoy, actual] = claseActual();
+  const franjas = [...new Set(HORARIO.clases.map((c) => c.inicio + "-" + c.fin))].map((f) => f.split("-")).sort((a, b) => minutos(a[0]) - minutos(b[0]));
+  const filas = franjas.map((f) => ["clase", f]).concat((HORARIO.pausas || []).map((p) => ["pausa", [p.inicio, p.fin]])).sort((a, b) => minutos(a[1][0]) - minutos(b[1][0]));
+  let html = `<div></div>` + [0, 1, 2, 3, 4].map((d) => `<div class="cab ${d === hoy ? "hoy" : ""}">${DIAS[d]}</div>`).join("");
+  for (const [tipo, [ini, fin]] of filas) {
+    if (tipo === "pausa") { html += `<div class="pausa">Pausa ${ini}–${fin}</div>`; continue; }
+    html += `<div class="hora">${ini}<br>${fin}</div>`;
+    for (let d = 0; d < 5; d++) {
+      const c = clasesDelDia(d).find((x) => x.inicio === ini);
+      if (!c) { html += `<div class="celda vacia"></div>`; continue; }
+      const [fondo, color] = colorAsig(c.asignatura);
+      html += `<div class="celda ${c === actual ? "ahora" : ""}" style="background:${fondo};border-left-color:${color};color:${color}"><div class="n" style="color:var(--texto)">${esc(nombreClase(c))}</div><div class="p" data-prof="${esc(c.profesor)}" data-asig="${esc(c.castellano || c.asignatura)}">${esc(c.profesor)} ✉</div></div>`;
+    }
+  }
+  cont.innerHTML = html;
+  cont.querySelectorAll(".p").forEach((el) => el.addEventListener("click", () => escribirDesdeHorario(el.dataset.prof, el.dataset.asig)));
+  $("horario-pie").innerHTML = `Grupo ${esc(HORARIO.grupo)} · curso ${esc(HORARIO.curso)} · sacado de «${esc(HORARIO.fuente?.nombre || "tu Drive")}»` + (HORARIO.fuente?.id ? ` · <a href="https://drive.google.com/file/d/${HORARIO.fuente.id}/view" target="_blank" rel="noopener">Abrir el PDF original</a>` : "");
+}
+function escribirDesdeHorario(profesores, asignatura) {
+  const nombres = profesores.split(/,| y /).map((n) => n.trim()).filter(Boolean).map(nombreClassroom);
+  escribirProfesor({ titulo: asignatura, asignatura }, nombres);
+}
+
+// ============================================================ Calendario
+const COLOR_TAREA = { vencida: ["var(--rojo-suave)", "var(--rojo)"], pronto: ["var(--amarillo)", "var(--amarillo-txt)"], pendiente: ["var(--verde-claro)", "var(--verde-osc)"], entregada: ["#eef0ef", "var(--gris-claro)"] };
+function guardarEventos() { localStorage.setItem("ch_eventos", JSON.stringify(estado.eventos)); }
+function dibujarCalendario() {
+  if (!estado.calAnio) { const h = new Date(); estado.calAnio = h.getFullYear(); estado.calMes = h.getMonth(); }
+  const { calAnio: y, calMes: m } = estado;
+  $("cal-mes").textContent = `${MESES[m][0].toUpperCase() + MESES[m].slice(1)} ${y}`;
+  const primero = new Date(y, m, 1); const desplaz = (primero.getDay() + 6) % 7;
+  const inicio = new Date(y, m, 1 - desplaz);
+  const cosas = {};
+  for (const t of estado.tareas) if (t.fecha) (cosas[fechaISO(t.fecha)] ||= []).push({ texto: tr(t.titulo), col: COLOR_TAREA[t.etiqueta], tipo: "tarea", dato: t });
+  for (const e of estado.eventos) (cosas[e.fecha] ||= []).push({ texto: e.titulo, col: e.tipo === "festivo" ? ["var(--naranja-suave)", "#8a4b00"] : ["var(--azul-suave)", "var(--azul)"], tipo: "mio", dato: e });
+  const hoy = hoyISO();
+  let html = DIAS.map((d) => `<div class="dn">${d.slice(0, 3)}</div>`).join("");
+  for (let i = 0; i < 42; i++) {
+    const f = new Date(inicio); f.setDate(inicio.getDate() + i); const iso = fechaISO(f);
+    const lista = cosas[iso] || [];
+    const festivo = lista.some((x) => x.tipo === "mio" && x.dato.tipo === "festivo");
+    html += `<div class="dia ${f.getMonth() !== m ? "otro" : ""} ${iso === hoy ? "hoy" : ""} ${festivo ? "festivo" : ""}" data-f="${iso}"><div class="num"><span>${f.getDate()}</span></div>` +
+      lista.slice(0, 4).map((x, j) => `<div class="ev" data-f="${iso}" data-j="${j}" style="background:${x.col[0]};color:${x.col[1]}">${esc(x.texto)}</div>`).join("") + (lista.length > 4 ? `<div class="info">+${lista.length - 4} más</div>` : "") + `</div>`;
+    if (i === 34 && f.getMonth() !== m && new Date(y, m + 1, 0).getDate() + desplaz <= 35) break;
+  }
+  $("cal").innerHTML = html;
+  $("cal").querySelectorAll(".ev").forEach((el) => el.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    const x = cosas[el.dataset.f][+el.dataset.j];
+    if (x.tipo === "tarea") { irA("tareas"); if (x.dato.entregada) { estado.verEntregadas = true; $("chk-entregadas").checked = true; } estado.asignatura = ""; mostrarTareas(); seleccionar(x.dato); }
+    else if (await confirmar(`¿Borrar «${x.dato.titulo}» del ${x.dato.fecha}?`, "Calendario")) { estado.eventos = estado.eventos.filter((ev) => ev !== x.dato); guardarEventos(); dibujarCalendario(); dibujarHoy(); }
+  }));
+  $("cal").querySelectorAll(".dia").forEach((el) => el.addEventListener("click", () => anadirEvento(el.dataset.f)));
+}
+async function anadirEvento(iso) {
+  const r = await dialogo(`<h3>Añadir al calendario</h3>
+    <div class="campo"><label>Fecha</label><input type="date" data-campo="fecha" value="${iso}"></div>
+    <div class="campo"><label>Hasta (opcional, para varios días)</label><input type="date" data-campo="hasta"></div>
+    <div class="campo"><label>Qué es</label><input type="text" data-campo="titulo" placeholder="Examen de SIM, puente, salida…"></div>
+    <div class="campo"><label class="check"><input type="checkbox" data-campo="festivo"> Es festivo (no hay clase)</label></div>`,
+    [{ texto: "Cancelar", sec: true }, { texto: "Guardar" }]);
+  if (r.boton !== "Guardar" || !r.valores.fecha) return;
+  const desde = new Date(r.valores.fecha + "T00:00"); const hasta = r.valores.hasta ? new Date(r.valores.hasta + "T00:00") : desde;
+  const tipo = r.valores.festivo ? "festivo" : "evento"; const titulo = r.valores.titulo.trim() || (tipo === "festivo" ? "Festivo" : "Evento");
+  for (let f = new Date(Math.min(desde, hasta)), n = 0; f <= new Date(Math.max(desde, hasta)) && n < 60; f.setDate(f.getDate() + 1), n++) estado.eventos.push({ fecha: fechaISO(f), titulo, tipo });
+  guardarEventos(); estado.calAnio = desde.getFullYear(); estado.calMes = desde.getMonth(); dibujarCalendario(); dibujarHoy();
+}
+$("cal-ant").addEventListener("click", () => { estado.calMes--; if (estado.calMes < 0) { estado.calMes = 11; estado.calAnio--; } dibujarCalendario(); });
+$("cal-sig").addEventListener("click", () => { estado.calMes++; if (estado.calMes > 11) { estado.calMes = 0; estado.calAnio++; } dibujarCalendario(); });
+$("cal-hoy").addEventListener("click", () => { estado.calAnio = 0; dibujarCalendario(); });
+$("cal-anadir").addEventListener("click", () => anadirEvento(hoyISO()));
+
+// ============================================================ Glosario
+const glos = { letra: "", q: "", visibles: [], sel: null };
+GLOSARIO.terminos.sort((a, b) => sinAcentos(a.termino).toLowerCase().localeCompare(sinAcentos(b.termino).toLowerCase()));
+function filtrarGlosario() {
+  const q = sinAcentos(glos.q).toLowerCase().trim(); const letra = glos.letra.toLowerCase();
+  const enTitulo = [], enTexto = [];
+  for (const e of GLOSARIO.terminos) {
+    const t = sinAcentos(e.termino).toLowerCase();
+    if (letra && !t.startsWith(letra)) continue;
+    if (!q || t.includes(q)) enTitulo.push(e); else if (sinAcentos(e.definicion).toLowerCase().includes(q)) enTexto.push(e);
+  }
+  glos.visibles = enTitulo.concat(enTexto);
+  $("glos-lista").innerHTML = glos.visibles.map((e, i) => `<div data-i="${i}" class="${i >= enTitulo.length ? "solo-def" : ""} ${e === glos.sel ? "sel" : ""}">${esc(e.termino)}</div>`).join("");
+  $("glos-lista").querySelectorAll("div").forEach((el) => el.addEventListener("click", () => mostrarTermino(glos.visibles[+el.dataset.i])));
+  if (q && glos.visibles.length) mostrarTermino(glos.visibles[0]);
+}
+function mostrarTermino(e) {
+  glos.sel = e;
+  $("glos-lista").querySelectorAll("div").forEach((el) => el.classList.toggle("sel", glos.visibles[+el.dataset.i] === e));
+  let def = esc(e.definicion);
+  const q = sinAcentos(glos.q).toLowerCase().trim();
+  if (q) { const plano = sinAcentos(e.definicion); let out = "", pos = 0; const bajo = plano.toLowerCase(); let i = bajo.indexOf(q); while (i !== -1) { out += esc(e.definicion.slice(pos, i)) + "<mark>" + esc(e.definicion.slice(i, i + q.length)) + "</mark>"; pos = i + q.length; i = bajo.indexOf(q, pos); } def = out + esc(e.definicion.slice(pos)); }
+  const rel = GLOSARIO.terminos.filter((o) => o !== e && o.termino.length >= 5 && sinAcentos(e.definicion).toLowerCase().includes(sinAcentos(o.termino).toLowerCase())).slice(0, 8);
+  const extra = (e.ingles ? `<p class="info">En inglés: ${esc(e.ingles)}</p>` : "") + (e.fuente ? `<p class="info">Fuente: ${esc(e.fuente)}</p>` : "");
+  $("glos-def").innerHTML = `<h3>${esc(e.termino)}</h3><p>${def}</p>` + extra + (rel.length ? `<p class="info">Ver también: ${rel.map((r) => `<a href="#" data-t="${esc(r.termino)}">${esc(r.termino)}</a>`).join(" · ")}</p>` : "");
+  $("glos-def").querySelectorAll("a[data-t]").forEach((a) => a.addEventListener("click", (ev) => { ev.preventDefault(); glos.letra = ""; $("glos-buscar").value = a.dataset.t; glos.q = a.dataset.t; pintarLetras(); filtrarGlosario(); }));
+}
+function pintarLetras() {
+  $("glos-letras").innerHTML = ["Todas", ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].map((l) => `<button class="${(l === "Todas" ? "" : l) === glos.letra ? "sel" : ""}" data-l="${l === "Todas" ? "" : l}">${l}</button>`).join("");
+  $("glos-letras").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { glos.letra = b.dataset.l; pintarLetras(); filtrarGlosario(); }));
+}
+$("glos-buscar").addEventListener("input", (e) => { glos.q = e.target.value; filtrarGlosario(); });
+$("glos-num").textContent = `${GLOSARIO.terminos.length} términos`;
+$("glos-fuente").textContent = `Fuente: ${GLOSARIO.fuente}`;
+pintarLetras(); filtrarGlosario();
+
+// ============================================================ Demostración
+async function cargarDemo() {
+  estado.demo = true;
+  const hoy = new Date(); const d = (n) => new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + n, 23, 59);
+  const T = (titulo, asignatura, dias, descripcion, mats = []) => { const fecha = d(dias); const etiqueta = dias < 0 ? "vencida" : dias <= 3 ? "pronto" : "pendiente"; return { id: titulo, titulo, asignatura, descripcion, fecha, textoFecha: fecha.toLocaleDateString("es-ES"), estado: { vencida: "Vencida", pronto: "Pronto", pendiente: "Pendiente" }[etiqueta], etiqueta, entregada: false, enlace: "https://classroom.google.com", materiales: mats }; };
+  estado.tareas = [
+    T("Treball SIM: anàlisi de mercat", "CINT1A | 0822 Sistema d'Informació de Mercats", 0, "Llegeix el document adjunt i respon a les preguntes. Lliura-ho en PDF.", [{ id: "demo1", titulo: "viernes 25 trabajo SIM.pdf", url: "#", tipo: "archivo" }]),
+    T("Exercici logístic Barcelona–Hamburg", "M0625 Logística d'Emmagatzematge", 2, "Calcula els costos de l'operació amb el full de càlcul."),
+    T("Mapa mental RA mòdul 0627", "0627 - GACI - Gestió administrativa del comerç internacional", -1, "Fes un mapa mental dels resultats d'aprenentatge."),
+    T("Initial self-assessment", "0179  CINT1A 2026-27", 5, "Please complete the initial English level self-assessment form."),
+    T("Autodiagnòstic FRASE", "Tutoria CINT1A", 9, "Omple l'autodiagnòstic i penja'l."),
+  ];
+  estado.traducciones = { "Treball SIM: anàlisi de mercat": "Trabajo SIM: análisis de mercado", "Initial self-assessment": "Initial self-assessment (Autoevaluación inicial)", "Llegeix el document adjunt i respon a les preguntes. Lliura-ho en PDF.": "Lee el documento adjunto y responde a las preguntas. Entrégalo en PDF.", "Please complete the initial English level self-assessment form.": "Please complete the initial English level self-assessment form.\n\n(Por favor, completa el formulario de autoevaluación inicial de nivel de inglés.)" };
+  estado.profesores = [{ asignatura: "CINT1A | 0822 Sistema d'Informació de Mercats", nombre: "Laura Regalado", correo: "" }, { asignatura: "0179  CINT1A 2026-27", nombre: "Noemí Martorell", correo: "" }, { asignatura: "M0625 Logística d'Emmagatzematge", nombre: "Miguel Angel Pico", correo: "" }, { asignatura: "0627 - GACI - Gestió administrativa del comerç internacional", nombre: "Noemí Baca", correo: "" }, { asignatura: "Tutoria CINT1A", nombre: "Laura Regalado", correo: "" }];
+  estado.adjuntos = { demo1: { titulo: "viernes 25 trabajo SIM.pdf", texto: "[Página 1]\nTrabajo SIM: analiza el mercado alemán para exportar aceite. Docente: lregalado@politecnics.barcelona", aviso: "" } };
+  if (!estado.eventos.length) estado.eventos = [{ fecha: fechaISO(d(4)), titulo: "Examen SIM", tipo: "evento" }];
+  $("panel-portada").classList.remove("activo");
+  irA("tareas"); rellenarAsignaturas(); mostrarTareas(); dibujarHoy(); saludoChat(); mostrarEstado();
+}
+$("btn-demo").addEventListener("click", cargarDemo);
+
+// ============================================================ Arranque
+// ============================================================ Resúmenes semanales (PDF hechos en el PC, guardados en Drive)
+estado.resumenes = null;
+function dibujarResumenes() {
+  const cont = $("res-lista");
+  if (!estado.resumenes) { cont.innerHTML = `<div class="info">Todavía no se han cargado. Pulsa ⟳ o inicia sesión.</div>`; return; }
+  const lista = estado.resumenes.resumenes || [];
+  if (!lista.length) { cont.innerHTML = `<div class="info">No hay resúmenes en Drive todavía. Abre Classroom Help en el PC: los genera y los sube solo.</div>`; return; }
+  const porAsig = {};
+  for (const r of lista) (porAsig[r.asignatura] = porAsig[r.asignatura] || []).push(r);
+  let html = "";
+  for (const asig of Object.keys(porAsig).sort()) {
+    const semanas = porAsig[asig].sort((a, b) => (b.anio - a.anio) || (b.num - a.num));
+    html += `<div class="tarjeta" style="padding:10px 12px"><div style="font-weight:700;color:var(--verde);margin-bottom:6px">${esc(asig)}</div>`;
+    for (const r of semanas) {
+      const d = new Date(r.desde), h = new Date(r.hasta);
+      html += `<div class="fila" style="gap:8px;padding:6px 0;border-top:1px solid var(--borde)">
+        <div style="flex:1"><b>${esc(r.semana)}</b><div class="info">${d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" })} – ${h.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" })} · ${r.cerrado ? "Cerrada (PDF)" : "En curso"} · ${r.publicaciones} publicaciones</div></div>
+        <a class="boton peq" href="${esc(r.enlace)}" target="_blank" rel="noopener">Abrir PDF</a></div>`;
+    }
+    html += `</div>`;
+  }
+  const cuando = estado.resumenes.actualizado ? `Actualizado en el PC: ${estado.resumenes.actualizado.replace("T", " ")}` : "";
+  $("res-estado").textContent = cuando;
+  cont.innerHTML = html;
+}
+async function cargarResumenes() {
+  try {
+    const guardado = await BD.get("drive:indice.json");
+    if (guardado && !estado.resumenes) { estado.resumenes = guardado.datos; dibujarResumenes(); }
+    const datos = await archivoDeDrive("indice.json");
+    if (datos) { estado.resumenes = datos; dibujarResumenes(); }
+  } catch (e) { registrar("Resúmenes de Drive: " + e.message); }
+}
+async function cargarGlosarioDeDrive() {
+  try {
+    const guardado = await BD.get("drive:glosario.json");
+    const datos = (await archivoDeDrive("glosario.json")) || (guardado && guardado.datos);
+    if (datos && Array.isArray(datos.terminos) && datos.terminos.length > GLOSARIO.terminos.length) {
+      GLOSARIO.terminos = datos.terminos; GLOSARIO.fuente = (datos.fuente || GLOSARIO.fuente) + " + documentos de Classroom y Drive";
+      GLOSARIO.terminos.sort((a, b) => sinAcentos(a.termino).toLowerCase().localeCompare(sinAcentos(b.termino).toLowerCase()));
+      $("glos-num").textContent = `${GLOSARIO.terminos.length} términos`; $("glos-fuente").textContent = `Fuente: ${GLOSARIO.fuente}`;
+      filtrarGlosario();
+    }
+  } catch (e) { registrar("Glosario de Drive: " + e.message); }
+}
+
+(async function arrancar() {
+  try { estado.eventos = JSON.parse(localStorage.getItem("ch_eventos") || "[]"); } catch (e) { estado.eventos = []; }
+  estado.traducciones = (await BD.get("traducciones")) || {};
+  for (const [k, v] of Object.entries(await BD.todos("adj:"))) estado.adjuntos[k.slice(4)] = v;
+  $("chk-ahorro").checked = ajustes.ahorro; $("chk-traducir").checked = ajustes.traducir;
+  dibujarHoy(); saludoChat();
+  if (new URLSearchParams(location.search).get("demo")) { cargarDemo(); return; }
+  if (await cargarCache()) {
+    $("panel-portada").classList.remove("activo"); irA("tareas"); rellenarAsignaturas(); mostrarTareas();
+    if (tokenGuardado()) cargar();
+    else { $("portada-aviso").textContent = ""; cargarResumenes(); cargarGlosarioDeDrive(); }
+  }
+  if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+})();
+
+</script>
+</body>
+</html>
