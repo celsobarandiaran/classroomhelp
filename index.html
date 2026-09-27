@@ -290,6 +290,23 @@ a.boton{text-decoration:none;display:inline-flex;align-items:center;white-space:
         <div id="rev-resultado"></div>
       </div>
     </section>
+    <section class="panel" id="panel-repaso">
+      <div class="tarjeta">
+        <h2 style="margin:0 0 6px">Repaso</h2>
+        <p class="info" style="margin:0 0 10px">Preguntas hechas con tus apuntes, materiales, glosario y resúmenes. Las prepara la app del PC; aquí las respondes y la IA corrige.</p>
+        <div class="fila" style="gap:10px;flex-wrap:wrap;align-items:end">
+          <div class="campo" style="flex:1;min-width:220px"><label>Asignatura</label><select id="rep-asig"></select></div>
+          <div class="campo"><label>Modo</label><select id="rep-modo"><option value="test">Tipo test</option><option value="libre">Respuesta libre</option></select></div>
+          <button class="boton" id="rep-empezar">Empezar</button>
+          <span class="info" id="rep-marcador" style="margin-left:auto"></span>
+        </div>
+        <div id="rep-estado" class="info" style="margin:8px 0"></div>
+        <div id="rep-pregunta" style="background:var(--bloque);border-radius:12px;padding:14px 16px;font-weight:600;font-size:17px;display:none"></div>
+        <div id="rep-zona" style="margin-top:10px"></div>
+        <div id="rep-resultado" style="margin-top:10px"></div>
+        <div class="fila" style="gap:8px;margin-top:10px"><button class="boton" id="rep-siguiente" style="display:none">Siguiente pregunta</button><button class="boton sec" id="rep-terminar" style="display:none">Terminar</button></div>
+      </div>
+    </section>
     <section class="panel" id="panel-resumenes">
       <div class="tarjeta">
         <div class="fila"><h2 style="margin:0">Resúmenes semanales</h2><span class="info" id="res-estado" style="margin-left:auto"></span></div>
@@ -331,6 +348,7 @@ a.boton{text-decoration:none;display:inline-flex;align-items:center;white-space:
   <button data-panel="horario"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Horario</button>
   <button data-panel="calendario"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Calendario</button>
   <button data-panel="revisar"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Revisar</button>
+  <button data-panel="repaso"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.5V14M12 17h.01"/></svg>Repaso</button>
   <button data-panel="resumenes"><svg viewBox="0 0 24 24"><path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v6h6M8 13h8M8 17h8"/></svg>Resúmenes</button>
   <button data-panel="glosario"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 19a2 2 0 0 1 2-2h12"/></svg>Glosario</button>
   <button data-panel="asistente" id="nav-asistente"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.5A8 8 0 1 1 21 12z"/></svg>Asistente</button>
@@ -445,6 +463,7 @@ function irA(panel) {
     if (panel === "calendario") dibujarCalendario();
     if (panel === "resumenes") dibujarResumenes();
     if (panel === "revisar") rellenarTareasRevision();
+    if (panel === "repaso") rellenarRepaso();
     if (panel === "horario") dibujarSemana();
   }
   $("hoy").style.display = (panel === "tareas" || panel === "horario") && (estado.tareas.length || estado.demo) ? "" : "none";
@@ -657,7 +676,7 @@ async function cargar() {
     irA("tareas");
     rellenarAsignaturas(); mostrarTareas(); dibujarHoy();
     traducirTodo();
-    cargarResumenes(); cargarGlosarioDeDrive(); cargarClaveDeDrive();
+    cargarResumenes(); cargarGlosarioDeDrive(); cargarClaveDeDrive(); cargarRepaso();
   } catch (e) {
     registrar("Error cargando: " + e.message);
     estado.avisos = [["No se pudieron cargar las tareas", "error"]]; mostrarEstado();
@@ -1486,6 +1505,93 @@ $("rev-foto").addEventListener("change", (e) => elegirArchivoRevision(e.target.f
 $("rev-archivo").addEventListener("change", (e) => elegirArchivoRevision(e.target.files[0]));
 $("rev-boton").addEventListener("click", revisarEjercicio);
 
+// ============================================================ Repaso (banco de preguntas hecho en el PC, guardado en Drive)
+const rep_ = { banco: null, hechas: {}, actual: null, sesion: { hechas: 0, aciertos: 0 } };
+const INSTRUCCIONES_CORREGIR_LIBRE = `Eres el profesor de repaso de Classroom Help. Corrige la respuesta de un estudiante de FP a una pregunta de repaso.
+Tienes la pregunta, los puntos clave que debería contener y una respuesta modelo. Responde SOLO con JSON:
+{"valoracion": "bien" | "parcial" | "mal", "nota": 0-10, "comentario": "2-3 frases dirigidas al estudiante, empezando por lo que ha hecho bien",
+ "acierta": ["punto clave que sí ha explicado", ...], "falta": ["punto clave que no aparece o está mal", ...], "mejorar": ["consejo concreto", ...]}
+Sé justo: si la idea está bien aunque con otras palabras, cuenta como acertada. Castellano, sin Markdown.`;
+async function cargarRepaso() {
+  try {
+    const g = await BD.get("drive:repaso.json"); if (g && !rep_.banco) rep_.banco = g.datos;
+    const d = await archivoDeDrive("repaso.json"); if (d) rep_.banco = d;
+  } catch (e) { registrar("Repaso de Drive: " + e.message); }
+  try { rep_.hechas = JSON.parse(localStorage.getItem("ch_repaso_hechas") || "{}"); } catch (e) { rep_.hechas = {}; }
+  rellenarRepaso();
+}
+function rellenarRepaso() {
+  const sel = $("rep-asig"); if (!sel) return;
+  const asigs = Object.keys(rep_.banco || {}).sort();
+  const antes = sel.value;
+  sel.innerHTML = asigs.length ? asigs.map((a) => `<option>${esc(a)}</option>`).join("") : `<option value="">(sin preguntas todavía)</option>`;
+  if (antes && asigs.includes(antes)) sel.value = antes;
+  $("rep-estado").textContent = asigs.length ? "" : "Abre Classroom Help en el PC y pulsa Empezar en su pestaña Repaso: las preguntas se guardan en tu Drive y aparecen aquí.";
+}
+function pendientesRepaso(asig, modo) {
+  const lista = ((rep_.banco || {})[asig] || {})[modo] || [];
+  const hechas = rep_.hechas[asig + "|" + modo] || [];
+  return lista.filter((q) => !hechas.includes(q.pregunta));
+}
+function empezarRepaso() {
+  rep_.sesion = { hechas: 0, aciertos: 0 }; $("rep-marcador").textContent = ""; $("rep-terminar").style.display = "";
+  siguienteRepaso();
+}
+function siguienteRepaso() {
+  const asig = $("rep-asig").value, modo = $("rep-modo").value;
+  $("rep-siguiente").style.display = "none"; $("rep-zona").innerHTML = ""; $("rep-resultado").innerHTML = "";
+  const pend = pendientesRepaso(asig, modo);
+  if (!asig) { $("rep-estado").textContent = "No hay preguntas todavía."; return; }
+  if (!pend.length) { $("rep-pregunta").style.display = "none"; $("rep-estado").textContent = "Has hecho todas las preguntas que hay de esta asignatura y modo. Abre la app del PC y pulsa Empezar ahí para que prepare más."; return; }
+  const q = rep_.actual = pend[Math.floor(Math.random() * pend.length)];
+  $("rep-estado").textContent = `${asig}${q.tema ? " · " + q.tema : ""}`;
+  $("rep-pregunta").style.display = "block"; $("rep-pregunta").textContent = q.pregunta;
+  const z = $("rep-zona");
+  if (modo === "test") {
+    z.innerHTML = q.opciones.map((o, i) => `<button class="boton sec" data-i="${i}" style="display:block;width:100%;text-align:left;margin:6px 0;font-weight:500">${"ABCDE"[i]}.  ${esc(o)}</button>`).join("");
+    z.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => responderTest(+b.dataset.i)));
+  } else {
+    z.innerHTML = `<p class="info" style="margin:0 0 6px">Escribe tu respuesta con tus palabras:</p><textarea id="rep-texto" rows="5" style="width:100%;border:1px solid var(--borde);border-radius:10px;padding:10px;font:inherit"></textarea><button class="boton" id="rep-corregir" style="margin-top:8px">Corregir</button>`;
+    $("rep-corregir").addEventListener("click", responderLibre);
+  }
+}
+function marcarHecha(acierto) {
+  const asig = $("rep-asig").value, modo = $("rep-modo").value, k = asig + "|" + modo;
+  (rep_.hechas[k] = rep_.hechas[k] || []).push(rep_.actual.pregunta);
+  try { localStorage.setItem("ch_repaso_hechas", JSON.stringify(rep_.hechas)); } catch (e) { /* nada */ }
+  rep_.sesion.hechas++; if (acierto) rep_.sesion.aciertos++;
+  $("rep-marcador").textContent = `Aciertos: ${rep_.sesion.aciertos} de ${rep_.sesion.hechas}`;
+  $("rep-siguiente").style.display = "";
+}
+function responderTest(i) {
+  const q = rep_.actual, bs = [...$("rep-zona").querySelectorAll("button")];
+  bs.forEach((b) => { b.disabled = true; });
+  bs[q.correcta].style.background = "var(--verde-claro)"; bs[q.correcta].style.color = "var(--verde-osc)";
+  const bien = i === q.correcta;
+  if (!bien) { bs[i].style.background = "var(--rojo-suave)"; bs[i].style.color = "var(--rojo)"; }
+  $("rep-resultado").innerHTML = `<p style="font-weight:700;color:${bien ? "var(--verde-osc)" : "var(--rojo)"}">${bien ? "¡Correcto!" : "No. La correcta es la " + "ABCDE"[q.correcta] + "."}</p>${q.explicacion ? `<p>${esc(q.explicacion)}</p>` : ""}`;
+  marcarHecha(bien);
+}
+async function responderLibre() {
+  const texto = ($("rep-texto").value || "").trim();
+  if (texto.length < 5) { $("rep-resultado").textContent = "Escribe una respuesta un poco más larga."; return; }
+  $("rep-corregir").disabled = true; $("rep-resultado").textContent = "Corrigiendo…";
+  const q = rep_.actual;
+  try {
+    const r = await llamarIA(INSTRUCCIONES_CORREGIR_LIBRE, [{ rol: "user", texto: `PREGUNTA: ${q.pregunta}\nPUNTOS CLAVE: ${(q.puntos_clave || []).join("; ")}\nRESPUESTA MODELO: ${q.respuesta_modelo || ""}\n\nRESPUESTA DEL ESTUDIANTE:\n${texto}` }], { comoJson: true });
+    let t = (r || "").trim(); if (t.startsWith("```")) t = t.replace(/^```\w*\n?|\n?```$/g, "");
+    const i = t.indexOf("{"), f = t.lastIndexOf("}"); const c = JSON.parse(t.slice(i, f + 1));
+    const val = String(c.valoracion || "").toLowerCase();
+    const cab = { bien: ["ok", "BIEN"], parcial: ["aviso", "A MEDIAS"], mal: ["error", "FLOJO"] }[val] || ["", "Valoración"];
+    const li = (tit, arr, sym) => arr && arr.length ? `<p style="margin:8px 0 2px"><b>${tit}</b></p><ul style="margin:0;padding-left:20px">${arr.map((x) => `<li>${sym} ${esc(x)}</li>`).join("")}</ul>` : "";
+    $("rep-resultado").innerHTML = `<span class="chip ${cab[0]}">${cab[1]}${c.nota != null ? " · nota " + esc(String(c.nota)) + "/10" : ""}</span><p>${esc(c.comentario || "")}</p>${li("Has explicado bien", c.acierta, "✓")}${li("Te falta o está mal", c.falta, "✗")}${li("Para mejorar", c.mejorar, "•")}${q.respuesta_modelo ? `<p style="margin-top:8px"><b>Respuesta modelo:</b> ${esc(q.respuesta_modelo)}</p>` : ""}`;
+    marcarHecha(val === "bien");
+  } catch (e) { $("rep-resultado").textContent = e.message; $("rep-corregir").disabled = false; }
+}
+$("rep-empezar").addEventListener("click", empezarRepaso);
+$("rep-siguiente").addEventListener("click", siguienteRepaso);
+$("rep-terminar").addEventListener("click", () => { $("rep-zona").innerHTML = ""; $("rep-resultado").innerHTML = ""; $("rep-pregunta").style.display = "none"; $("rep-siguiente").style.display = "none"; $("rep-terminar").style.display = "none"; $("rep-estado").textContent = `Sesión terminada: ${rep_.sesion.aciertos} aciertos de ${rep_.sesion.hechas}.`; });
+
 // ============================================================ Resúmenes semanales (PDF hechos en el PC, guardados en Drive)
 estado.resumenes = null;
 function dibujarResumenes() {
@@ -1542,7 +1648,7 @@ async function cargarGlosarioDeDrive() {
   if (await cargarCache()) {
     $("panel-portada").classList.remove("activo"); irA("tareas"); rellenarAsignaturas(); mostrarTareas();
     if (tokenGuardado()) cargar();
-    else { $("portada-aviso").textContent = ""; cargarResumenes(); cargarGlosarioDeDrive(); }
+    else { $("portada-aviso").textContent = ""; cargarResumenes(); cargarGlosarioDeDrive(); cargarRepaso(); }
   }
   if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
 })();
