@@ -347,8 +347,10 @@ function registrar(texto) {
 }
 
 // Ajustes (localStorage) ----------------------------------------------------
-const AJUSTES_DEFECTO = { clientId: "", claveIA: "", proveedor: "gemini", ahorro: true, traducir: true, modelo: "" };
-function leerAjustes() { try { return { ...AJUSTES_DEFECTO, ...JSON.parse(localStorage.getItem("ch_ajustes") || "{}") }; } catch (e) { return { ...AJUSTES_DEFECTO }; } }
+// El ID de cliente de Google es público por diseño (identifica la app, no da acceso a nada): va incluido
+const CLIENT_ID_DEFECTO = "812567536168-95mbvictrt43v5lf25dii9p9b33p16sa.apps.googleusercontent.com";
+const AJUSTES_DEFECTO = { clientId: CLIENT_ID_DEFECTO, claveIA: "", proveedor: "gemini", ahorro: true, traducir: true, modelo: "" };
+function leerAjustes() { try { const a = { ...AJUSTES_DEFECTO, ...JSON.parse(localStorage.getItem("ch_ajustes") || "{}") }; if (!a.clientId) a.clientId = CLIENT_ID_DEFECTO; return a; } catch (e) { return { ...AJUSTES_DEFECTO }; } }
 function guardarAjustes(a) { localStorage.setItem("ch_ajustes", JSON.stringify(a)); }
 let ajustes = leerAjustes();
 
@@ -633,7 +635,7 @@ async function cargar() {
     irA("tareas");
     rellenarAsignaturas(); mostrarTareas(); dibujarHoy();
     traducirTodo();
-    cargarResumenes(); cargarGlosarioDeDrive();
+    cargarResumenes(); cargarGlosarioDeDrive(); cargarClaveDeDrive();
   } catch (e) {
     registrar("Error cargando: " + e.message);
     estado.avisos = [["No se pudieron cargar las tareas", "error"]]; mostrarEstado();
@@ -669,6 +671,15 @@ async function archivoDeDrive(nombre) {
   const datos = await llamarGoogle(`https://www.googleapis.com/drive/v3/files/${f.id}?alt=media`);
   await BD.set("drive:" + nombre, { modificado: f.modifiedTime, datos });
   return datos;
+}
+
+// La clave de Gemini la deja la app del PC en tu Drive (archivo privado tablet_config.json): así no hay que teclearla
+async function cargarClaveDeDrive() {
+  if (ajustes.claveIA) return;
+  try {
+    const c = await archivoDeDrive("tablet_config.json");
+    if (c && c.clave) { ajustes = { ...ajustes, claveIA: String(c.clave).trim() }; guardarAjustes(ajustes); registrar("Clave de la IA cargada desde Drive."); saludoChat && saludoChat(); }
+  } catch (e) { registrar("Clave de Drive: " + e.message); }
 }
 
 // ---------- js3_ia.js
